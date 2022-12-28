@@ -1,10 +1,14 @@
 import Link from 'next/link'
+import {signIn} from 'next-auth/react'
 
 const Navbar = () => {
   return <nav className="h-16 flex items-center p-4">
-    <Link href="/login" className="h-10 w-10 rounded-full fill-current ml-auto">
+    <button onClick={() => signIn()} className="h-10 w-10 rounded-full fill-current ml-auto">
       <Login/>
-    </Link>
+    </button>
+    {/* <Link href="/login" className="h-10 w-10 rounded-full fill-current ml-auto">
+      <Login/>
+    </Link> */}
   </nav>
 }
 
