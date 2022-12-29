@@ -50,7 +50,7 @@ const Bude = () => {
     return <div>{bude.data.name}</div>
   }
 
-  return <Link href="">
+  return <Link href="/account/bude">
     Bude oder Landjugend hinzufügen
   </Link>
 }
