@@ -2,27 +2,20 @@ import { type NextPage } from "next"
 import Head from "next/head"
 import {useEffect, useState, useRef} from 'react'
 
-import {Wrapper} from '@googlemaps/react-wrapper'
-
-import {env} from '@/env/client.mjs'
 import Navbar from '@/components/Navbar'
 
 const Home: NextPage = () => {
-  return (
-    <>
-      <Head>
-        <title>Bude Finder</title>
-        <meta name="description" content="Findet buden in deiner Umgebung" />
-        <link rel="icon" href="/favicon.ico" />
-      </Head>
-      <main className="text-white flex flex-col h-screen bg-slate-800">
-        <Wrapper apiKey={env.NEXT_PUBLIC_MAPS_KEY} render={() => <h1>Test</h1>}>
-          <Map/>
-        </Wrapper>
-        <Navbar/>
+  return <>
+    <Head>
+      <title>Bude Finder</title>
+    </Head>
+    <div className="flex flex-col h-full">
+      <main className="h-full">
+        <Map/>
       </main>
-    </>
-  )
+      <Navbar/>
+    </div>
+  </>
 }
 
 export default Home
@@ -75,6 +68,6 @@ const Map = () => {
   }, [map])
 
   return <>
-    <div ref={ref} className="flex-1"/>
+    <div ref={ref} className="h-full"/>
   </>
 }
