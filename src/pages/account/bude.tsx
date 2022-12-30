@@ -3,6 +3,7 @@ import {type ParsedUrlQuery} from 'querystring'
 import Link from 'next/link'
 import {useEffect, useCallback, useRef, useState, useMemo} from 'react'
 import {useRouter} from 'next/router'
+import {useSession} from 'next-auth/react'
 
 import {useMap} from '@/utils/map'
 import {LeftSVG, RightSVG, DownSVG} from '@/svg'
@@ -38,6 +39,7 @@ const extractInfo = (query: ParsedUrlQuery): null | {name: string, description: 
 }
 
 const AddBude: NextPage = () => {
+  const session = useSession()
   const router = useRouter()
 
   const info = useMemo(() => extractInfo(router.query), [router.query])
@@ -52,6 +54,13 @@ const AddBude: NextPage = () => {
       router.push('/')
     },
   })
+
+  useEffect(() => {
+    if (session.status === 'loading')
+      return
+    if (session.status !== 'authenticated')
+      router.push('/')
+  }, [session, router])
 
   const handleNext = useCallback(() => {
     if (stage === 'position') {
