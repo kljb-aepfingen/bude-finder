@@ -15,7 +15,7 @@ label {
   @apply text-lg mb-2
 }
 
-.global-wrapper {
+body {
   @apply text-white bg-slate-800;
   height: 100vh;
   height: 100dvh;
