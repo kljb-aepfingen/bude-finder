@@ -1,7 +1,7 @@
 import {type NextPage} from 'next'
 import {useRouter} from 'next/router'
 import {signOut, useSession} from 'next-auth/react'
-import {useEffect} from 'react'
+import {useCallback, useEffect} from 'react'
 import Link from 'next/link'
 
 import {trpc} from '@/utils/trpc'
@@ -49,14 +49,28 @@ const BackToMap = () => {
 
 const Bude = () => {
   const bude = trpc.bude.own.useQuery()
+  const mutation = trpc.bude.delete.useMutation({
+    onSuccess: () => {
+      bude.refetch()
+    }
+  })
+
+  const handleDelete = useCallback(() => {
+    mutation.mutate()
+  }, [mutation])
 
   if (bude.data) {
     return <div className="flex flex-col gap-1">
       <h2 className="text-xl">{bude.data.name}</h2>      
       <div className="ml-4">{bude.data.description}</div>
-      <Link href={`/account/bude?info=${JSON.stringify(bude.data)}`} className={button}>
-        Bearbeiten
-      </Link>
+      <div className="grid grid-cols-2 gap-2">
+        <Link href={`/account/bude?info=${JSON.stringify(bude.data)}`} className={button}>
+          Bearbeiten
+        </Link>
+        <button onClick={handleDelete} className={button}>
+          Löschen
+        </button>
+      </div>
     </div>
   }
 
