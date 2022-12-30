@@ -1,7 +1,26 @@
 import { type NextPage } from "next"
 import Head from "next/head"
+import {useEffect} from 'react'
+
+import {useMap} from '@/utils/map'
+import {trpc} from '@/utils/trpc'
 
 const Home: NextPage = () => {
+  const {map} = useMap()
+  const {data} = trpc.bude.all.useQuery()
+
+  useEffect(() => {
+    if (!data)
+      return
+
+    const markers = data.map(({lat, lng, name}) => {
+      const marker = new google.maps.Marker({map, position: {lat, lng}, title: name})
+      return marker
+    })
+
+    return () => markers.forEach(marker => marker.setMap(null))
+  }, [data, map])
+
   return <>
     <Head>
       <title>Bude Finder</title>

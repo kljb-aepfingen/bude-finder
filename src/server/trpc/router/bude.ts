@@ -1,5 +1,5 @@
 import {z} from 'zod'
-import {protectedProcedure, router} from '../trpc'
+import {protectedProcedure, publicProcedure, router} from '../trpc'
 
 export const budeRouter = router({
   own: protectedProcedure.query(async ({ctx}) => {
@@ -23,5 +23,9 @@ export const budeRouter = router({
       }
     })
     return bude
+  }),
+  all: publicProcedure.query(async ({ctx}) => {
+    const budes = await ctx.prisma.bude.findMany({select: {lat: true, lng: true, name: true, description: true}})
+    return budes.map(({name, description, lat, lng}) => ({name, description, lat: lat.toNumber(), lng: lng.toNumber()}))
   })
 })
