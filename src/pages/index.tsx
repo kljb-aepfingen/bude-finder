@@ -75,35 +75,48 @@ interface InfoProps {
 
 const Info = ({info}: InfoProps) => {
   const ref = useRef<HTMLDivElement>(null)
-  const prevoius = useRef<InfoProps['info'] | null>(null)
+  const [prevoius, setPrevious] = useState<InfoProps['info'] | null>(null)
+  const closed = useRef(true)
 
   useEffect(() => {
     if (!ref.current)
       return
     const div = ref.current
     if (info) {
-      prevoius.current = info
+      setPrevious(info)
+      return
+    }
+    div.style.height = '0px'
+  }, [info])
+
+  useEffect(() => {
+    if (!closed.current)
+      return
+    if (!ref.current)
+      return
+    if (prevoius) {
+      closed.current = false
+      const div = ref.current
       div.style.display = 'block'
       div.style.height = 'auto'
       const {height} = div.getBoundingClientRect()
       div.style.height = '0px'
       div.getBoundingClientRect()
       div.style.height = `${height}px`
-      return
     }
-    div.style.height = '0px'
-  }, [info])
+  }, [prevoius])
 
   const handleTransitionEnd = useCallback(() => {
     if (ref.current && !info) {
       ref.current.style.display = 'none'
+      closed.current = true
     }
   }, [info])
 
   return <div onTransitionEnd={handleTransitionEnd} ref={ref} className="overflow-hidden fixed bottom-0 left-0 right-0 bg-slate-800 transition-[height] hidden">
     <div className="grid grid-cols-1 p-4 gap-4">
-      <h1 className="text-4xl">{prevoius.current?.name}</h1>
-      <div className="text-lg">{prevoius.current?.description}</div>
+      <h1 className="text-4xl">{prevoius?.name}</h1>
+      <div className="text-lg">{prevoius?.description}</div>
     </div>
   </div>
 }
