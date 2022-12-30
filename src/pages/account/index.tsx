@@ -13,6 +13,8 @@ const Account: NextPage = () => {
   const router = useRouter()
 
   useEffect(() => {
+    if (session.status === 'loading')
+      return
     if (session.status !== 'authenticated') {
       router.push('/')
     }
@@ -38,7 +40,7 @@ const Account: NextPage = () => {
 
 export default Account
 
-import {LeftSVG} from '@/svg'
+import {LeftSVG, SpinnerSVG} from '@/svg'
 
 const BackToMap = () => {
   return <Link href="/" className="mt-auto h-16 flex items-center text-xl p-1 bg-white/10">
@@ -58,6 +60,12 @@ const Bude = () => {
   const handleDelete = useCallback(() => {
     mutation.mutate()
   }, [mutation])
+
+  if (bude.isLoading) {
+    return <div className="grid place-items-center">
+      <SpinnerSVG/>
+    </div>
+  }
 
   if (bude.data) {
     return <div className="flex flex-col gap-1">
