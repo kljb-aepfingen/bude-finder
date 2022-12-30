@@ -16,7 +16,7 @@ label {
 }
 
 .global-wrapper {
-  @apply flex flex-col;
-  height: 100%;
+  @apply text-white bg-slate-800;
+  height: 100vh;
   height: 100dvh;
 }
