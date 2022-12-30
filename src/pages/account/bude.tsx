@@ -1,6 +1,7 @@
 import {type NextPage} from 'next'
+import {type ParsedUrlQuery} from 'querystring'
 import Link from 'next/link'
-import {useEffect, useCallback, useRef, useState} from 'react'
+import {useEffect, useCallback, useRef, useState, useMemo} from 'react'
 import {useRouter} from 'next/router'
 
 import {useMap} from '@/utils/map'
@@ -9,13 +10,45 @@ import {trpc} from '@/utils/trpc'
 
 type Stage = 'position' | 'info'
 
+const extractInfo = (query: ParsedUrlQuery): null | {name: string, description: string, position: {lat: number, lng: number}, id: string} => {
+  if (!query.info || Array.isArray(query.info))
+    return null
+
+  try {
+    const info = JSON.parse(query.info)
+    if (
+      typeof info.name === 'string' &&
+      typeof info.description === 'string' &&
+      typeof info.lat === 'number' &&
+      typeof info.lng === 'number' &&
+      typeof info.id === 'string'
+    ) {
+      return {
+        name: info.name,
+        description: info.description,
+        position: {
+          lat: info.lat,
+          lng: info.lng
+        },
+        id: info.id
+      }
+    }
+    return null
+  } catch (e) {
+    return null
+  }
+}
+
 const AddBude: NextPage = () => {
-  const {marker, stage, setStage} = useAddBude()
-  const [name, setName] = useState('')
-  const [description, setDescription] = useState('')
+  const router = useRouter()
+
+  const info = useMemo(() => extractInfo(router.query), [router.query])
+
+  const {marker, stage, setStage} = useAddBude(info?.position)
+  const [name, setName] = useState(info?.name ?? '')
+  const [description, setDescription] = useState(info?.description ?? '')
   const [submitted, setSubmitted] = useState(false)
 
-  const router = useRouter()
   const mutation = trpc.bude.add.useMutation({
     onSuccess: () => {
       router.push('/')
@@ -43,9 +76,10 @@ const AddBude: NextPage = () => {
       name,
       description,
       lat: position.lat(),
-      lng: position.lng()
+      lng: position.lng(),
+      id: info?.id
     })
-  }, [stage, setStage, name, description, marker, mutation])
+  }, [stage, setStage, name, description, marker, mutation, info])
 
   return <>
     <Info {...{stage, setStage, name, setName, description, setDescription, submitted}}/>
@@ -159,10 +193,15 @@ const Navbar = ({disableNext, onNext}: NavbarProps) => {
 
 
 
-const useAddBude = () => {
+const useAddBude = (position?: {lat: number, lng: number}) => {
   const {map} = useMap()
-  const [stage, setStage] = useState<Stage>('position')
-  const [marker, setMarker] = useState<google.maps.Marker | null>(null)
+  const [stage, setStage] = useState<Stage>(position ? 'info' : 'position')
+  const [marker, setMarker] = useState<google.maps.Marker | null>(position ? new google.maps.Marker({map, position}) : null)
+
+  if (position) {
+    map.setCenter(position)
+    map.setZoom(20)
+  }
 
   const handleClick = useCallback(({latLng}: {latLng: google.maps.LatLng}) => {
     if (stage !== 'position')

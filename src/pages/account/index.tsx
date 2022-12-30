@@ -6,6 +6,8 @@ import Link from 'next/link'
 
 import {trpc} from '@/utils/trpc'
 
+const button = 'text-center text-lg border border-slate-600 rounded-xl px-4 py-2'
+
 const Account: NextPage = () => {
   const session = useSession()
   const router = useRouter()
@@ -24,9 +26,11 @@ const Account: NextPage = () => {
   return <div className="flex flex-col h-full">
     <main className="flex flex-col p-4">
       <h1 className="text-2xl">{user.name ?? 'Kein Name'}</h1>
-      <div className="h-px bg-white/40 my-4"/>
-      <Bude/>
-      <button onClick={() => signOut({callbackUrl: '/'})}>Sign Out</button>
+      <div className="h-px bg-slate-600 my-4"/>
+      <div className="flex flex-col gap-3">
+        <Bude/>
+        <button className={button} onClick={() => signOut({callbackUrl: '/'})}>Sign Out</button>
+      </div>
     </main>
     <BackToMap/>
   </div> 
@@ -47,10 +51,16 @@ const Bude = () => {
   const bude = trpc.bude.own.useQuery()
 
   if (bude.data) {
-    return <div>{bude.data.name}</div>
+    return <div className="flex flex-col gap-1">
+      <h2 className="text-xl">{bude.data.name}</h2>      
+      <div className="ml-4">{bude.data.description}</div>
+      <Link href={`/account/bude?info=${JSON.stringify(bude.data)}`} className={button}>
+        Bearbeiten
+      </Link>
+    </div>
   }
 
-  return <Link href="/account/bude">
+  return <Link href="/account/bude" className={button}>
     Bude oder Landjugend hinzufügen
   </Link>
 }
