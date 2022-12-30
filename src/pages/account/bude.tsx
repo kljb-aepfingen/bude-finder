@@ -10,7 +10,7 @@ import {trpc} from '@/utils/trpc'
 
 type Stage = 'position' | 'info'
 
-const extractInfo = (query: ParsedUrlQuery): null | {name: string, description: string, position: {lat: number, lng: number}, id: string} => {
+const extractInfo = (query: ParsedUrlQuery): null | {name: string, description: string, position: {lat: number, lng: number}} => {
   if (!query.info || Array.isArray(query.info))
     return null
 
@@ -20,8 +20,7 @@ const extractInfo = (query: ParsedUrlQuery): null | {name: string, description: 
       typeof info.name === 'string' &&
       typeof info.description === 'string' &&
       typeof info.lat === 'number' &&
-      typeof info.lng === 'number' &&
-      typeof info.id === 'string'
+      typeof info.lng === 'number'
     ) {
       return {
         name: info.name,
@@ -29,8 +28,7 @@ const extractInfo = (query: ParsedUrlQuery): null | {name: string, description: 
         position: {
           lat: info.lat,
           lng: info.lng
-        },
-        id: info.id
+        }
       }
     }
     return null
@@ -76,10 +74,9 @@ const AddBude: NextPage = () => {
       name,
       description,
       lat: position.lat(),
-      lng: position.lng(),
-      id: info?.id
+      lng: position.lng()
     })
-  }, [stage, setStage, name, description, marker, mutation, info])
+  }, [stage, setStage, name, description, marker, mutation])
 
   return <>
     <Info {...{stage, setStage, name, setName, description, setDescription, submitted}}/>

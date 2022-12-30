@@ -13,20 +13,19 @@ export const budeRouter = router({
       name: bude.name,
       description: bude.description,
       lat: bude.lat.toNumber(),
-      lng: bude.lng.toNumber(),
-      id: bude.id
+      lng: bude.lng.toNumber()
     }
   }),
   add: protectedProcedure.input(z.object({
-    id: z.string().nullish(),
     name: z.string(),
     description: z.string(),
     lat: z.number(),
     lng: z.number()
   })).mutation(async ({ctx, input}) => {
-    if (input.id) {
-      const bude = await ctx.prisma.bude.update({
-        where: {id: input.id, userId: ctx.session.user.id},
+    const bude = await ctx.prisma.bude.findFirst({where: {userId: ctx.session.user.id}})
+    if (bude) {
+      return await ctx.prisma.bude.update({
+        where: {id: bude.id},
         data: {
           name: input.name,
           description: input.description,
@@ -34,10 +33,9 @@ export const budeRouter = router({
           lng: input.lng
         }
       })
-      return bude
     }
 
-    const bude = await ctx.prisma.bude.create({
+    return await ctx.prisma.bude.create({
       data: {
         lat: input.lat,
         lng: input.lng,
@@ -46,7 +44,6 @@ export const budeRouter = router({
         userId: ctx.session.user.id
       }
     })
-    return bude
   }),
   all: publicProcedure.query(async ({ctx}) => {
     const budes = await ctx.prisma.bude.findMany({select: {lat: true, lng: true, name: true, description: true}})
