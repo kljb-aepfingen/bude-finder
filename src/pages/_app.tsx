@@ -63,7 +63,7 @@ const MyApp: AppType<{ session: Session | null }> = ({
   return (
     <SessionProvider session={session}>
       <Wrapper apiKey={env.NEXT_PUBLIC_MAPS_KEY}>
-        <div className="flex flex-col h-full">
+        <div className="global-wrapper">
           <div ref={ref} className="flex-1"/>
           {map && <mapContext.Provider value={{map}}>
             <Component {...pageProps} />
