@@ -9,20 +9,31 @@ import "../styles/globals.css";
 
 import {env} from "@/env/client.mjs"
 import {mapContext} from '@/utils/map'
-import {useState, useCallback} from 'react'
+import {useState, useCallback, useEffect} from 'react'
+
+const defaultPosition = {
+  latLng: {lat: 50, lng: 10.2},
+  zoom: 7
+}
 
 const MyApp: AppType<{ session: Session | null }> = ({
   Component,
   pageProps: { session, ...pageProps },
 }) => {
   const [map, setMap] = useState<google.maps.Map | null>(null)
+  const [position, setPosition] = useState(defaultPosition)
+  
   const ref = useCallback((ref: HTMLDivElement | null) => {
-    if (!ref) {
-      return setMap(null)
+    if (!ref)
+      return
+    if (map) {
+      map.setCenter(position.latLng)
+      map.setZoom(position.zoom)
+      return
     }
     setMap(new google.maps.Map(ref, {
-      center: {lat: 40, lng: 40},
-      zoom: 10,
+      center: position.latLng,
+      zoom: position.zoom,
       disableDefaultUI: true,
       zoomControl: true,
       zoomControlOptions: {
@@ -35,6 +46,18 @@ const MyApp: AppType<{ session: Session | null }> = ({
         }
       ]
     }))
+  }, [position, map])
+
+  useEffect(() => {
+    navigator.geolocation.getCurrentPosition(({coords}) => {
+      setPosition({
+        latLng: {
+          lat: coords.latitude,
+          lng: coords.longitude
+        },
+        zoom: 13
+      })
+    })
   }, [])
 
   return (
