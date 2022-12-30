@@ -1,21 +1,54 @@
 import {type NextPage} from 'next'
 import Link from 'next/link'
 import {useEffect, useCallback, useRef, useState} from 'react'
+import {useRouter} from 'next/router'
 
 import {useMap} from '@/utils/map'
 import {LeftSVG, RightSVG, DownSVG} from '@/svg'
+import {trpc} from '@/utils/trpc'
 
 type Stage = 'position' | 'info'
 
 const AddBude: NextPage = () => {
   const {marker, stage, setStage} = useAddBude()
+  const [name, setName] = useState('')
+  const [description, setDescription] = useState('')
+  const [submitted, setSubmitted] = useState(false)
+
+  const router = useRouter()
+  const mutation = trpc.bude.add.useMutation({
+    onSuccess: () => {
+      router.push('/')
+    },
+  })
 
   const handleNext = useCallback(() => {
-    setStage('info')
-  }, [setStage])
+    if (stage === 'position') {
+      setStage('info')
+      return
+    }
+    if (name === '' || description === '') {
+      setSubmitted(true)
+      return
+    }
+
+    if (!marker)
+      return
+
+    const position = marker.getPosition()
+    if (!position)
+      return
+
+    mutation.mutate({
+      name,
+      description,
+      lat: position.lat(),
+      lng: position.lng()
+    })
+  }, [stage, setStage, name, description, marker, mutation])
 
   return <>
-    <Info stage={stage} setStage={setStage}/>
+    <Info {...{stage, setStage, name, setName, description, setDescription, submitted}}/>
     <Navbar disableNext={!marker} onNext={handleNext}/>  
   </>
 }
@@ -25,10 +58,15 @@ export default AddBude
 
 interface InfoProps {
   stage: Stage,
-  setStage: (stage: Stage) => void
+  setStage: (stage: Stage) => void,
+  name: string,
+  setName: (value: string) => void,
+  description: string,
+  setDescription: (value: string) => void,
+  submitted: boolean
 }
 
-const Info = ({setStage, stage}: InfoProps) => {
+const Info = ({setStage, stage, description, name, setDescription, setName, submitted}: InfoProps) => {
   const ref = useRef<HTMLDivElement>(null)
 
   useEffect(() => {
@@ -57,18 +95,40 @@ const Info = ({setStage, stage}: InfoProps) => {
     setStage('position')
   }, [setStage])
 
+  const handleNameChange = useCallback((event: React.ChangeEvent<HTMLInputElement>) => {
+    setName(event.currentTarget.value)
+  }, [setName])
+  
+  const handleDescriptionChange = useCallback((event: React.ChangeEvent<HTMLTextAreaElement>) => {
+    setDescription(event.currentTarget.value)
+  }, [setDescription])
+
   return <div onTransitionEnd={handleTransitionEnd} ref={ref} className="overflow-hidden transition-[height] hidden">
     <div className="grid grid-cols-1">
       <button onClick={handleDown} className="bg-slate-700 grid place-items-center">
         <DownSVG/>
       </button>
-      <form className="grid grid-cols-1 p-4">
+      <div className="grid grid-cols-1 p-4">
         <label htmlFor="name">Name der Bude/Landjugend</label>
-        <input type="text" name="name" id="name"/>
+        <input
+          onChange={handleNameChange}
+          type="text"
+          name="name"
+          id="name"
+          value={name}
+          className={`${submitted && name === '' && 'border-red-600'}`}
+        />
         <div className="p-1"/>
         <label htmlFor="description">Beschreibt euch ein wenig</label>
-        <textarea name="description" rows={6} id="description"></textarea>
-      </form>
+        <textarea
+          onChange={handleDescriptionChange}
+          name="description"
+          rows={6}
+          id="description"
+          value={description}
+          className={`${submitted && description === '' && 'border-red-600'}`}
+        ></textarea>
+      </div>
     </div>
   </div>
 }
@@ -86,7 +146,11 @@ const Navbar = ({disableNext, onNext}: NavbarProps) => {
       <LeftSVG/>
       <span className="-translate-y-0.5">Zurück</span>
     </Link>
-    <button disabled={disableNext} onClick={onNext} className="text-xl flex justify-end items-center">
+    <button
+      disabled={disableNext}
+      onClick={onNext}
+      className="text-xl flex justify-end items-center"
+    >
       <span className="-translate-y-0.5">{disableNext ? 'Plaziere einen Marker' : 'Weiter'}</span>
       <RightSVG/>
     </button>
