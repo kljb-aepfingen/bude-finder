@@ -39,6 +39,7 @@ const MyApp: AppType<{ session: Session | null }> = ({
       zoomControlOptions: {
         position: google.maps.ControlPosition.RIGHT_TOP
       },
+      mapTypeControl: true,
       styles: [
         {
           featureType: 'poi',
