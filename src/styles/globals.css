@@ -5,3 +5,12 @@
 #__next {
   @apply contents;
 }
+
+input, textarea {
+  @apply bg-transparent border border-slate-500 px-4 py-2 text-lg rounded-xl resize-none;
+  @apply focus:outline-none focus:bg-slate-700 focus:border-slate-700;
+}
+
+label {
+  @apply text-lg mb-2
+}

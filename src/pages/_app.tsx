@@ -24,6 +24,10 @@ const MyApp: AppType<{ session: Session | null }> = ({
       center: {lat: 40, lng: 40},
       zoom: 10,
       disableDefaultUI: true,
+      zoomControl: true,
+      zoomControlOptions: {
+        position: google.maps.ControlPosition.RIGHT_TOP
+      },
       styles: [
         {
           featureType: 'poi',
