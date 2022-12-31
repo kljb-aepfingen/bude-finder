@@ -5,6 +5,7 @@ import {useCallback, useEffect} from 'react'
 import Link from 'next/link'
 
 import {trpc} from '@/utils/trpc'
+import {useBude} from '@/utils/bude'
 
 const button = 'text-center text-lg border border-slate-600 rounded-xl px-4 py-2'
 
@@ -50,7 +51,7 @@ const BackToMap = () => {
 }
 
 const Bude = () => {
-  const bude = trpc.bude.own.useQuery()
+  const bude = useBude()
   const mutation = trpc.bude.delete.useMutation({
     onSuccess: () => {
       bude.refetch()

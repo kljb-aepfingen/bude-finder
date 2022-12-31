@@ -1,6 +1,6 @@
 import { type AppType } from "next/app";
 import { type Session } from "next-auth";
-import { SessionProvider } from "next-auth/react";
+import {SessionProvider} from "next-auth/react";
 import {Wrapper} from '@googlemaps/react-wrapper'
 
 import { trpc } from "../utils/trpc";
@@ -10,6 +10,7 @@ import "../styles/globals.css";
 import {env} from "@/env/client.mjs"
 import {mapContext} from '@/utils/map'
 import {useState, useCallback, useEffect} from 'react'
+import {BudeProvider} from '@/utils/bude'
 
 const defaultPosition = {
   latLng: {lat: 50, lng: 10.2},
@@ -22,7 +23,8 @@ const MyApp: AppType<{ session: Session | null }> = ({
 }) => {
   const [map, setMap] = useState<google.maps.Map | null>(null)
   const [position, setPosition] = useState(defaultPosition)
-  
+
+
   const ref = useCallback((ref: HTMLDivElement | null) => {
     if (!ref)
       return
@@ -67,7 +69,9 @@ const MyApp: AppType<{ session: Session | null }> = ({
         <div className="flex flex-col h-full">
           <div ref={ref} className="flex-1"/>
           {map && <mapContext.Provider value={{map}}>
-            <Component {...pageProps} />
+            <BudeProvider>
+              <Component {...pageProps} />
+            </BudeProvider>
           </mapContext.Provider>}
         </div>
       </Wrapper>

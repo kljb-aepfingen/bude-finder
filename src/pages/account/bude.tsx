@@ -1,7 +1,6 @@
 import {type NextPage} from 'next'
-import {type ParsedUrlQuery} from 'querystring'
 import Link from 'next/link'
-import {useEffect, useCallback, useRef, useState, useMemo} from 'react'
+import {useEffect, useCallback, useRef, useState} from 'react'
 import {useRouter} from 'next/router'
 import {useSession} from 'next-auth/react'
 
@@ -11,47 +10,30 @@ import {trpc} from '@/utils/trpc'
 
 type Stage = 'position' | 'info'
 
-const extractInfo = (query: ParsedUrlQuery): null | {name: string, description: string, position: {lat: number, lng: number}} => {
-  if (!query.info || Array.isArray(query.info))
-    return null
-
-  try {
-    const info = JSON.parse(query.info)
-    if (
-      typeof info.name === 'string' &&
-      typeof info.description === 'string' &&
-      typeof info.lat === 'number' &&
-      typeof info.lng === 'number'
-    ) {
-      return {
-        name: info.name,
-        description: info.description,
-        position: {
-          lat: info.lat,
-          lng: info.lng
-        }
-      }
-    }
-    return null
-  } catch (e) {
-    return null
-  }
-}
+import {useBude} from '@/utils/bude'
 
 const AddBude: NextPage = () => {
   const session = useSession()
   const router = useRouter()
 
-  const info = useMemo(() => extractInfo(router.query), [router.query])
-
-  const {marker, stage, setStage} = useAddBude(info?.position)
-  const [name, setName] = useState(info?.name ?? '')
-  const [description, setDescription] = useState(info?.description ?? '')
+  const {marker, stage, setStage} = useAddBude()
+  const [name, setName] = useState('')
+  const [description, setDescription] = useState('')
   const [submitted, setSubmitted] = useState(false)
+
+  const bude = useBude()
+
+  useEffect(() => {
+    if (bude.data) {
+      setName(bude.data.name)
+      setDescription(bude.data.description)
+    }
+  }, [bude])
 
   const mutation = trpc.bude.add.useMutation({
     onSuccess: () => {
       router.push('/')
+      bude.refetch()
     },
   })
 
@@ -89,7 +71,7 @@ const AddBude: NextPage = () => {
 
   return <>
     <Info {...{stage, setStage, name, setName, description, setDescription, submitted}}/>
-    <Navbar disableNext={!marker} onNext={handleNext}/>  
+    <Navbar disableNext={!marker} onNext={handleNext}/>
   </>
 }
 
@@ -199,15 +181,21 @@ const Navbar = ({disableNext, onNext}: NavbarProps) => {
 
 
 
-const useAddBude = (position?: {lat: number, lng: number}) => {
+const useAddBude = () => {
   const {map} = useMap()
-  const [stage, setStage] = useState<Stage>(position ? 'info' : 'position')
-  const [marker, setMarker] = useState<google.maps.Marker | null>(position ? new google.maps.Marker({map, position}) : null)
+  const [stage, setStage] = useState<Stage>('position')
+  const [marker, setMarker] = useState<google.maps.Marker | null>(null)
+  const bude = useBude()
 
-  if (position) {
-    map.setCenter(position)
-    map.setZoom(20)
-  }
+  useEffect(() => {
+    if (bude.data) {
+      const position = {lat: bude.data.lat, lng: bude.data.lng}
+      setMarker(new google.maps.Marker({map, position}))
+      setStage('info')
+      map.setCenter(position)
+      map.setZoom(19)
+    }
+  }, [bude, map])
 
   const handleClick = useCallback(({latLng}: {latLng: google.maps.LatLng}) => {
     if (stage !== 'position')
