@@ -74,49 +74,38 @@ interface InfoProps {
 }
 
 const Info = ({info}: InfoProps) => {
+  const [previous, setPrevious] = useState<InfoProps['info']>(null)
   const ref = useRef<HTMLDivElement>(null)
-  const [prevoius, setPrevious] = useState<InfoProps['info'] | null>(null)
-  const closed = useRef(true)
+  const lastHeight = useRef(0)
 
   useEffect(() => {
     if (!ref.current)
       return
-    const div = ref.current
     if (info) {
       setPrevious(info)
-      return
+      ref.current.style.display = 'block'
+      ref.current.style.height = 'auto'
+      const {height} = ref.current.getBoundingClientRect()
+      ref.current.style.height = `${lastHeight.current}px`
+      ref.current.getBoundingClientRect()
+      ref.current.style.height = `${height}px`
+      lastHeight.current = height
+    } else {
+      lastHeight.current = 0
+      ref.current.style.height = '0px'
     }
-    div.style.height = '0px'
   }, [info])
-
-  useEffect(() => {
-    if (!closed.current)
-      return
-    if (!ref.current)
-      return
-    if (prevoius) {
-      closed.current = false
-      const div = ref.current
-      div.style.display = 'block'
-      div.style.height = 'auto'
-      const {height} = div.getBoundingClientRect()
-      div.style.height = '0px'
-      div.getBoundingClientRect()
-      div.style.height = `${height}px`
-    }
-  }, [prevoius])
 
   const handleTransitionEnd = useCallback(() => {
     if (ref.current && !info) {
       ref.current.style.display = 'none'
-      closed.current = true
     }
   }, [info])
-
-  return <div onTransitionEnd={handleTransitionEnd} ref={ref} className="overflow-hidden fixed bottom-0 left-0 right-0 bg-slate-800 transition-[height] hidden">
+  
+  return <div ref={ref} onTransitionEnd={handleTransitionEnd} className="overflow-hidden fixed bottom-0 left-0 right-0 bg-slate-800 transition-[height] hidden">
     <div className="grid grid-cols-1 p-4 gap-4">
-      <h1 className="text-4xl">{prevoius?.name}</h1>
-      <div className="text-lg">{prevoius?.description}</div>
+      <h1 className="text-4xl">{info?.name ?? previous?.name}</h1>
+      <div className="text-lg">{info?.description ?? previous?.description}</div>
     </div>
   </div>
 }
