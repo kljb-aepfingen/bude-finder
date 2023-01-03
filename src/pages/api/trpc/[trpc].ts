@@ -21,7 +21,7 @@ export default createNextApiHandler({
     if (cache && ok && query) {
       return {
         headers: {
-          'cache-control': `max-age=${60 * 60 * 24}`
+          'cache-control': `max-age=${env.CACHE_TIME}`
         }
       }
     }
