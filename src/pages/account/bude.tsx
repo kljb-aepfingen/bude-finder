@@ -180,6 +180,13 @@ const useAddBude = () => {
       map.setCenter(position)
       map.setZoom(19)
     }
+
+    return () => {
+      setMarker(prev => {
+        prev?.setMap(null)
+        return null
+      })
+    }
   }, [bude, map])
 
   const handleClick = useCallback(({latLng}: {latLng: google.maps.LatLng}) => {
