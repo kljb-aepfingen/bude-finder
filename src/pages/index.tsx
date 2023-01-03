@@ -1,14 +1,20 @@
 import { type NextPage } from "next"
 import Head from "next/head"
-import {useEffect, useState, useRef, useCallback} from 'react'
+import {useEffect, useState, useCallback} from 'react'
 
 import {useMap} from '@/utils/map'
 import {cacheControl, trpc} from '@/utils/trpc'
 
+interface Info {
+  id: string,
+  name: string,
+  description: string
+}
+
 const Home: NextPage = () => {
   const {map} = useMap()
   const {data} = trpc.bude.all.useQuery()
-  const [info, setInfo] = useState<InfoProps['info'] | null>(null)
+  const [info, setInfo] = useState<Info | null>(null)
 
   useEffect(() => {
     if (!data)
@@ -37,7 +43,13 @@ const Home: NextPage = () => {
       <title>Bude Finder</title>
     </Head>
     <Account/>
-    <Info info={info}/>
+    {info && <div className="fixed bottom-0 left-0 right-0 bg-slate-800">
+      <div className="grid grid-cols-1 p-4 gap-4">
+        <h1 className="text-4xl flex flex-wrap">{info.name}</h1>
+        <div className="text-lg">{info.description}</div>
+        <Evaluation id={info.id}/>
+      </div>
+    </div>}
   </>
 }
 
@@ -66,61 +78,6 @@ const Account = () => {
 }
 
 
-interface InfoProps {
-  info: null | {
-    name: string,
-    description: string,
-    id: string
-  }
-}
-
-
-const Info = ({info}: InfoProps) => {
-  const [previous, setPrevious] = useState<InfoProps['info']>(null)
-  const ref = useRef<HTMLDivElement>(null)
-  const lastHeight = useRef(0)
-  const [loader, setLoader] = useState(false)
-
-  useEffect(() => {
-    if (!ref.current)
-      return
-    if (info) {
-      setPrevious(info)
-      ref.current.style.display = 'block'
-      ref.current.style.height = 'auto'
-      const {height} = ref.current.getBoundingClientRect()
-      if (lastHeight.current === 0) {
-        ref.current.style.height = '0px'
-        ref.current.getBoundingClientRect()
-      }
-      ref.current.style.height = `${height}px`
-      lastHeight.current = height
-    } else {
-      lastHeight.current = 0
-      ref.current.style.height = '0px'
-    }
-  }, [info])
-
-  const handleTransitionEnd = useCallback(() => {
-    if (ref.current && !info) {
-      ref.current.style.display = 'none'
-    }
-  }, [info])
-  
-  return <div ref={ref} onTransitionEnd={handleTransitionEnd} className="overflow-hidden fixed bottom-0 left-0 right-0 bg-slate-800 transition-[height] hidden">
-    <div className="grid grid-cols-1 p-4 gap-4">
-      <h1 className="text-4xl flex flex-wrap">
-        {loader && <SpinnerSVG/>}
-        {info?.name ?? previous?.name}
-      </h1>
-      <div className="text-lg">{info?.description ?? previous?.description}</div>
-      {info && <Eval id={info.id} setLoader={setLoader}/>}
-    </div>
-  </div>
-}
-
-import {SpinnerSVG} from '@/svg'
-
 const formater = Intl.NumberFormat('de', {
   notation: 'compact'
 })
@@ -132,19 +89,14 @@ const likeClassNames = (selected: boolean) => {
   return names
 }
 
-const Eval = ({id, setLoader}: {id: string, setLoader: (value: boolean) => void}) => {
+const Evaluation = ({id}: {id: string}) => {
   const evaluation = trpc.eval.get.useQuery({id}, {
-    onSuccess: () => {
-      cacheControl.noCache = false
-      setLoader(false)
-    }
+    onSuccess: () => cacheControl.noCache = false
   })
-  const options = {
-    onSuccess: () => {
-      cacheControl.noCache = true
-      evaluation.refetch()
-    }
-  }
+  const options = {onSuccess: () => {
+    cacheControl.noCache = true
+    evaluation.refetch()
+  }}
   const setEvaluation = trpc.eval.set.useMutation(options)
   const updateEvaluation = trpc.eval.update.useMutation(options)
   const deleteEvaluation = trpc.eval.delete.useMutation(options)
@@ -154,7 +106,6 @@ const Eval = ({id, setLoader}: {id: string, setLoader: (value: boolean) => void}
   const handleClick = useCallback((like: boolean) => () => {
     if (!evaluation.data)
       return
-    setLoader(true)
     if (!evaluation.data.own) {
       setEvaluation.mutate({id, like})
       return
@@ -169,12 +120,18 @@ const Eval = ({id, setLoader}: {id: string, setLoader: (value: boolean) => void}
     updateEvaluation,
     setEvaluation,
     deleteEvaluation,
-    setLoader,
     id
   ])
 
   if (!evaluation.data) {
-    return <SpinnerSVG/>
+    return <div className="grid grid-cols-2 gap-2 h-12">
+      <div className={likeClassNames(false)}>
+        👍
+      </div>
+      <div className={likeClassNames(false)}>
+        👎
+      </div>
+    </div>
   }
 
   const {dislikes, likes, own} = evaluation.data
@@ -185,7 +142,7 @@ const Eval = ({id, setLoader}: {id: string, setLoader: (value: boolean) => void}
     deleteEvaluation.isLoading
 
   if (session.status !== 'authenticated') {
-    return <div className="grid grid-cols-2 gap-2">
+    return <div className="grid grid-cols-2 gap-2 h-12">
       <div className={likeClassNames(false)}>
         {likes._count === 0 ? '' : formater.format(likes._count)}
         👍
@@ -197,7 +154,7 @@ const Eval = ({id, setLoader}: {id: string, setLoader: (value: boolean) => void}
     </div>
   }
   
-  return <div className="grid grid-cols-2 gap-2">
+  return <div className="grid grid-cols-2 gap-2 h-12">
     <button
       disabled={disabled}
       onClick={handleClick(true)}
