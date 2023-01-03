@@ -11,6 +11,8 @@ const getBaseUrl = () => {
   return `http://localhost:${process.env.PORT ?? 3000}`; // dev SSR should use localhost
 };
 
+export const cacheControl = {noCache: false}
+
 export const trpc = createTRPCNext<AppRouter>({
   config() {
     return {
@@ -23,11 +25,19 @@ export const trpc = createTRPCNext<AppRouter>({
         }),
         httpBatchLink({
           url: `${getBaseUrl()}/api/trpc`,
+          headers() {
+            if (cacheControl.noCache) {
+              return {
+                'cache-control': 'no-cache'
+              }
+            }
+            return {}
+          },
         }),
       ],
     };
   },
-  ssr: true
+  ssr: false
 });
 
 /**

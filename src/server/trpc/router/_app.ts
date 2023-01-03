@@ -1,8 +1,10 @@
 import { router } from "../trpc"
 import {budeRouter} from './bude'
+import {evalRouter} from './evaluation'
 
 export const appRouter = router({
-  bude: budeRouter
+  bude: budeRouter,
+  eval: evalRouter
 })
 
 // export type definition of API

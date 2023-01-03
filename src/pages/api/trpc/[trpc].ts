@@ -14,4 +14,17 @@ export default createNextApiHandler({
           console.error(`❌ tRPC failed on ${path}: ${error}`);
         }
       : undefined,
+  responseMeta: ({errors, type, paths}) => {
+    const cache = paths && paths.every(path => path.includes('eval'))
+    const ok = errors.length === 0
+    const query = type === 'query'
+    if (cache && ok && query) {
+      return {
+        headers: {
+          'cache-control': `max-age=${60 * 60 * 24}`
+        }
+      }
+    }
+    return {}
+  }
 });

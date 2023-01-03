@@ -46,8 +46,16 @@ export const budeRouter = router({
     })
   }),
   all: publicProcedure.query(async ({ctx}) => {
-    const budes = await ctx.prisma.bude.findMany({select: {lat: true, lng: true, name: true, description: true}})
-    return budes.map(({name, description, lat, lng}) => ({name, description, lat: lat.toNumber(), lng: lng.toNumber()}))
+    const budes = await ctx.prisma.bude.findMany({
+      select: {
+        id: true,
+        lat: true,
+        lng: true,
+        name: true,
+        description: true
+      }
+    })
+    return budes.map(({name, description, lat, lng, id}) => ({id, name, description, lat: lat.toNumber(), lng: lng.toNumber()}))
   }),
   delete: protectedProcedure.mutation(async ({ctx}) => {
     await ctx.prisma.bude.delete({
