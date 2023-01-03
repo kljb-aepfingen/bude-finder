@@ -96,36 +96,21 @@ const Info = ({setStage, stage, description, name, setDescription, setName, subm
       return
     const div = ref.current
     if (stage === 'info') {
-      div.style.display = 'block'
-      div.style.height = 'auto'
-      const {height} = div.getBoundingClientRect()
-      div.style.height = '0px'
-      div.getBoundingClientRect()
-      div.style.height = `${height}px`
+      div.style.display = ' block'
       return
     }
-    div.style.height = '0px'
-  }, [stage])
-
-  const handleTransitionEnd = useCallback(() => {
-    if (ref.current && stage === 'position') {
-      ref.current.style.display = 'none'
-    }
+    div.style.display = ''
   }, [stage])
 
   const handleDown = useCallback(() => {
     setStage('position')
   }, [setStage])
 
-  const handleNameChange = useCallback((event: React.ChangeEvent<HTMLInputElement>) => {
-    setName(event.currentTarget.value)
-  }, [setName])
-  
-  const handleDescriptionChange = useCallback((event: React.ChangeEvent<HTMLTextAreaElement>) => {
-    setDescription(event.currentTarget.value)
-  }, [setDescription])
+  const handleChange = useCallback((set: (value: string) => void) => (event: React.ChangeEvent<{value: string}>) => {
+    set(event.currentTarget.value)
+  }, [])
 
-  return <div onTransitionEnd={handleTransitionEnd} ref={ref} className="overflow-hidden transition-[height] hidden">
+  return <div ref={ref} className="hidden">
     <div className="grid grid-cols-1">
       <button onClick={handleDown} className="bg-slate-700 grid place-items-center">
         <DownSVG/>
@@ -133,7 +118,7 @@ const Info = ({setStage, stage, description, name, setDescription, setName, subm
       <div className="grid grid-cols-1 p-4">
         <label htmlFor="name">Name der Bude/Landjugend</label>
         <input
-          onChange={handleNameChange}
+          onChange={handleChange(setName)}
           type="text"
           name="name"
           id="name"
@@ -143,7 +128,7 @@ const Info = ({setStage, stage, description, name, setDescription, setName, subm
         <div className="p-1"/>
         <label htmlFor="description">Beschreibt euch ein wenig</label>
         <textarea
-          onChange={handleDescriptionChange}
+          onChange={handleChange(setDescription)}
           name="description"
           rows={6}
           id="description"
