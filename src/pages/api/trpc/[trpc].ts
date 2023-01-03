@@ -15,7 +15,7 @@ export default createNextApiHandler({
         }
       : undefined,
   responseMeta: ({errors, type, paths}) => {
-    const cache = paths && paths.every(path => path.includes('eval'))
+    const cache = paths && paths.every(path => cachable.includes(path))
     const ok = errors.length === 0
     const query = type === 'query'
     if (cache && ok && query) {
@@ -28,3 +28,5 @@ export default createNextApiHandler({
     return {}
   }
 });
+
+const cachable = ['bude.own', 'bude.all', 'eval.get']

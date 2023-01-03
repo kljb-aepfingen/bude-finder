@@ -6,7 +6,7 @@ import {useSession} from 'next-auth/react'
 
 import {useMap} from '@/utils/map'
 import {LeftSVG, RightSVG, DownSVG} from '@/svg'
-import {trpc} from '@/utils/trpc'
+import {trpc, cacheControl} from '@/utils/trpc'
 
 type Stage = 'position' | 'info'
 
@@ -30,10 +30,17 @@ const AddBude: NextPage = () => {
     }
   }, [bude])
 
+  const allBude = trpc.bude.all.useQuery()
   const mutation = trpc.bude.add.useMutation({
-    onSuccess: () => {
+    onSuccess: async () => {
+      cacheControl.noCache = true
+      const test = await Promise.all([
+        bude.refetch(),
+        allBude.refetch()
+      ])
+      console.log('finished refetch', test)
+      cacheControl.noCache = false
       router.push('/')
-      bude.refetch()
     },
   })
 
