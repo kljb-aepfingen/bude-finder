@@ -31,18 +31,17 @@ const AddBude: NextPage = () => {
   }, [bude])
 
   const allBude = trpc.bude.all.useQuery()
-  const mutation = trpc.bude.add.useMutation({
-    onSuccess: async () => {
-      cacheControl.noCache = true
-      const test = await Promise.all([
-        bude.refetch(),
-        allBude.refetch()
-      ])
-      console.log('finished refetch', test)
-      cacheControl.noCache = false
-      router.push('/')
-    },
-  })
+  const options = {onSuccess: async () => {
+    cacheControl.noCache = true
+    await Promise.all([
+      bude.refetch(),
+      allBude.refetch()
+    ])
+    cacheControl.noCache = false
+    router.push('/')
+  }}
+  const addBude = trpc.bude.add.useMutation(options)
+  const updateBude = trpc.bude.update.useMutation(options)
 
   useEffect(() => {
     if (session.status === 'loading')
@@ -61,20 +60,38 @@ const AddBude: NextPage = () => {
       return
     }
 
-    if (!marker)
+    if (!marker) {
       return
+    }
 
     const position = marker.getPosition()
-    if (!position)
+    if (!position) {
       return
+    }
 
-    mutation.mutate({
+    const data = {
       name,
       description,
       lat: position.lat(),
       lng: position.lng()
-    })
-  }, [stage, setStage, name, description, marker, mutation])
+    }
+
+    if (bude.data) {
+      updateBude.mutate(data)
+      return
+    }
+
+    addBude.mutate(data)
+  }, [
+    stage,
+    setStage,
+    name,
+    description,
+    marker,
+    addBude,
+    updateBude,
+    bude
+  ])
 
   return <>
     <Info {...{stage, setStage, name, setName, description, setDescription, submitted}}/>

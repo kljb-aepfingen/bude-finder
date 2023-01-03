@@ -4,7 +4,7 @@ import {signOut, useSession} from 'next-auth/react'
 import {useCallback, useEffect} from 'react'
 import Link from 'next/link'
 
-import {trpc} from '@/utils/trpc'
+import {cacheControl, trpc} from '@/utils/trpc'
 import {useBude} from '@/utils/bude'
 
 const button = 'text-center text-lg border border-slate-600 rounded-xl px-4 py-2'
@@ -52,9 +52,15 @@ const BackToMap = () => {
 
 const Bude = () => {
   const bude = useBude()
+  const allBude = trpc.bude.all.useQuery()
   const mutation = trpc.bude.delete.useMutation({
-    onSuccess: () => {
-      bude.refetch()
+    onSuccess: async () => {
+      cacheControl.noCache = true
+      await Promise.all([
+        bude.refetch(),
+        allBude.refetch()
+      ])
+      cacheControl.noCache = false
     }
   })
 
@@ -68,22 +74,22 @@ const Bude = () => {
     </div>
   }
 
-  if (bude.data) {
-    return <div className="flex flex-col gap-1">
-      <h2 className="text-xl">{bude.data.name}</h2>      
-      <div className="ml-4">{bude.data.description}</div>
-      <div className="grid grid-cols-2 gap-2">
-        <Link href={`/account/bude?info=${JSON.stringify(bude.data)}`} className={button}>
-          Bearbeiten
-        </Link>
-        <button onClick={handleDelete} className={button}>
-          Löschen
-        </button>
-      </div>
-    </div>
+  if (!bude.data || !bude.data.active) {
+    return <Link href="/account/bude" className={button}>
+      Bude oder Landjugend hinzufügen
+    </Link>
   }
 
-  return <Link href="/account/bude" className={button}>
-    Bude oder Landjugend hinzufügen
-  </Link>
+  return <div className="flex flex-col gap-1">
+    <h2 className="text-xl">{bude.data.name}</h2>      
+    <div className="ml-4">{bude.data.description}</div>
+    <div className="grid grid-cols-2 gap-2">
+      <Link href={`/account/bude`} className={button}>
+        Bearbeiten
+      </Link>
+      <button onClick={handleDelete} className={button}>
+        Löschen
+      </button>
+    </div>
+  </div>
 }
