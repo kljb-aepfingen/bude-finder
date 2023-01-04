@@ -9,7 +9,7 @@ import "../styles/globals.css";
 
 import {env} from "@/env/client.mjs"
 import {mapContext} from '@/utils/map'
-import {useState, useCallback, useEffect} from 'react'
+import {useState, useCallback, useEffect, useRef} from 'react'
 import {BudeProvider} from '@/utils/bude'
 
 const defaultPosition = {
@@ -22,20 +22,18 @@ const MyApp: AppType<{ session: Session | null }> = ({
   pageProps: { session, ...pageProps },
 }) => {
   const [map, setMap] = useState<google.maps.Map | null>(null)
-  const [position, setPosition] = useState(defaultPosition)
-
+  const [position, setPosition] = useState<typeof defaultPosition | null>(null)
+  const livePosition = useRef<google.maps.Marker | null>(null)
 
   const ref = useCallback((ref: HTMLDivElement | null) => {
     if (!ref)
       return
     if (map) {
-      map.setCenter(position.latLng)
-      map.setZoom(position.zoom)
       return
     }
     setMap(new google.maps.Map(ref, {
-      center: position.latLng,
-      zoom: position.zoom,
+      center: defaultPosition.latLng,
+      zoom: defaultPosition.zoom,
       disableDefaultUI: true,
       zoomControl: true,
       zoomControlOptions: {
@@ -49,7 +47,15 @@ const MyApp: AppType<{ session: Session | null }> = ({
         }
       ]
     }))
-  }, [position, map])
+  }, [map])
+
+  useEffect(() => {
+    if (!map || !position) {
+      return
+    }
+    map.setCenter(position.latLng)
+    map.setZoom(position.zoom)
+  }, [map, position])
 
   useEffect(() => {
     navigator.geolocation.getCurrentPosition(({coords}) => {
@@ -62,6 +68,35 @@ const MyApp: AppType<{ session: Session | null }> = ({
       })
     })
   }, [])
+
+  useEffect(() => {
+    if (!map) {
+      return
+    }
+
+    const watch = navigator.geolocation.watchPosition(({coords}) => {
+      const position = {
+        lat: coords.latitude,
+        lng: coords.longitude
+      }
+      if (livePosition.current) {
+        livePosition.current.setPosition(position)
+        return
+      }
+      livePosition.current = new google.maps.Marker({
+        map,
+        position
+      })
+    })
+
+    return () => {
+      navigator.geolocation.clearWatch(watch)
+      if (livePosition.current) {
+        livePosition.current.setMap(null)
+        livePosition.current = null
+      }
+    }
+  }, [map])
 
   return (
     <SessionProvider session={session}>

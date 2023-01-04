@@ -5,6 +5,8 @@ import {useEffect, useState, useCallback} from 'react'
 import {useMap} from '@/utils/map'
 import {cacheControl, trpc} from '@/utils/trpc'
 
+import {budeMarker} from '@/utils/marker'
+
 interface Info {
   id: string,
   name: string,
@@ -21,7 +23,7 @@ const Home: NextPage = () => {
       return
 
     const markers = data.map(({lat, lng, name, description, id}) => {
-      const marker = new google.maps.Marker({map, position: {lat, lng}, title: name})
+      const marker = budeMarker(map, {lat, lng}, name)
       google.maps.event.addListener(marker, 'click', () => {
         setInfo({name, description, id})
       })

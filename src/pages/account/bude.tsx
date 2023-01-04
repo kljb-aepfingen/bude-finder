@@ -11,6 +11,7 @@ import {trpc, cacheControl} from '@/utils/trpc'
 type Stage = 'position' | 'info'
 
 import {useBude} from '@/utils/bude'
+import {budeMarker} from '@/utils/marker'
 
 const AddBude: NextPage = () => {
   const session = useSession()
@@ -199,7 +200,7 @@ const useAddBude = () => {
   useEffect(() => {
     if (bude.data) {
       const position = {lat: bude.data.lat, lng: bude.data.lng}
-      setMarker(new google.maps.Marker({map, position}))
+      setMarker(budeMarker(map, position))
       setStage('info')
       map.setCenter(position)
       map.setZoom(19)
@@ -220,7 +221,7 @@ const useAddBude = () => {
       marker.setPosition(latLng)
       return
     }
-    setMarker(new google.maps.Marker({map, position: latLng}))
+    setMarker(budeMarker(map, latLng))
   }, [map, marker, stage])
 
   useEffect(() => {
