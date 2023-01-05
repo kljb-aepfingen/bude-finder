@@ -47,6 +47,7 @@ const MyApp: AppType<{ session: Session | null }> = ({
         }
       ]
     }))
+    window
   }, [map])
 
   useEffect(() => {
@@ -102,17 +103,14 @@ const MyApp: AppType<{ session: Session | null }> = ({
     <SessionProvider session={session}>
       <Wrapper apiKey={env.NEXT_PUBLIC_MAPS_KEY}>
         <div className="flex flex-col h-full">
-          <ins
-            className="adsbygoogle"
-            style={{display: 'block'}}
-            data-ad-client="ca-pub-8241943697814118"
-            data-ad-slot="7494837909"
-            data-ad-format="auto"
-            data-full-width-responsive="true"
-          ></ins>
-          <script>
-              (adsbygoogle = window.adsbygoogle || []).push({});
-          </script>
+          <div>
+            <ins
+              className="adsbygoogle"
+              style={{display: 'inline-block', width: '728px', height: '90px'}}
+              data-ad-client="ca-pub-8241943697814118"
+              data-ad-slot="7494837909"
+            ></ins>
+          </div>
           <div ref={ref} className="flex-1"/>
           {map && <mapContext.Provider value={{map}}>
             <BudeProvider>

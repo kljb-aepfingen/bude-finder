@@ -92,12 +92,11 @@ const likeClassNames = (selected: boolean) => {
 }
 
 const Evaluation = ({id}: {id: string}) => {
-  const evaluation = trpc.eval.get.useQuery({id}, {
-    onSuccess: () => cacheControl.noCache = false
-  })
-  const options = {onSuccess: () => {
+  const evaluation = trpc.eval.get.useQuery({id})
+  const options = {onSuccess: async () => {
     cacheControl.noCache = true
-    evaluation.refetch()
+    await evaluation.refetch()
+    cacheControl.noCache = false
   }}
   const setEvaluation = trpc.eval.set.useMutation(options)
   const updateEvaluation = trpc.eval.update.useMutation(options)
