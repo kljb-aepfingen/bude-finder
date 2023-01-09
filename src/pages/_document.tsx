@@ -6,6 +6,7 @@ const Document = () => {
       <meta name="description" content="Findet buden in deiner Umgebung" />
       <link rel="icon" href="/favicon.ico" />
       <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-8241943697814118" crossOrigin="anonymous"></script>
+      <script async src="/temp.js"/>
     </Head>
     <body>
       <Main/>
