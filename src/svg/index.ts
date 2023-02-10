@@ -4,6 +4,7 @@ import DownSVG from './Down'
 import AccountSVG from './Account'
 import SignUpSVG from './SignUp'
 import SpinnerSVG from './Spinner'
+import InfoSVG from './Info'
 
 export {
   LeftSVG,
@@ -11,5 +12,6 @@ export {
   DownSVG,
   AccountSVG,
   SignUpSVG,
-  SpinnerSVG
+  SpinnerSVG,
+  InfoSVG
 }

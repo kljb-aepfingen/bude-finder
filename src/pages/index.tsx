@@ -44,6 +44,7 @@ const Home: NextPage = () => {
     <Head>
       <title>Bude Finder</title>
     </Head>
+    <Info/>
     <Account/>
     {info && <div className="fixed bottom-0 left-0 right-0 bg-slate-800">
       <div className="grid grid-cols-1 p-4 gap-4">
@@ -61,20 +62,20 @@ export default Home
 import Link from 'next/link'
 import {signIn, useSession} from 'next-auth/react'
 
-import {AccountSVG, SignUpSVG} from '@/svg'
+import {AccountSVG, SignUpSVG, InfoSVG} from '@/svg'
 
-const classNames = "h-16 w-16 rounded-full ml-auto fixed bottom-4 right-4 bg-slate-800"
+const classNames = "h-16 w-16 rounded-full ml-auto fixed bottom-4 bg-slate-800"
 
 const Account = () => {
   const {status} = useSession()
 
   if (status === 'authenticated') {
-    return <Link href="/account" className={`${classNames} p-2`}>
+    return <Link href="/account" className={`${classNames} right-4 p-2`}>
       <AccountSVG/>
     </Link>
   }
 
-  return <button onClick={() => signIn('google')} className={`${classNames} p-3`}>
+  return <button onClick={() => signIn('google')} className={`${classNames} right-4 p-3`}>
     <SignUpSVG/>
   </button>
 }
@@ -173,4 +174,11 @@ const Evaluation = ({id}: {id: string}) => {
       👎
     </button>
   </div>
+}
+
+
+const Info = () => {
+  return <Link href="/info" className={`${classNames} left-4 p-3`}>
+    <InfoSVG/>
+  </Link>
 }

@@ -6,6 +6,7 @@ import Link from 'next/link'
 
 import {cacheControl, trpc} from '@/utils/trpc'
 import {useBude} from '@/utils/bude'
+import BackToMap from '@/components/BackToMap'
 
 const button = 'text-center text-lg border border-slate-600 rounded-xl px-4 py-2'
 
@@ -41,14 +42,7 @@ const Account: NextPage = () => {
 
 export default Account
 
-import {LeftSVG, SpinnerSVG} from '@/svg'
-
-const BackToMap = () => {
-  return <Link href="/" className="mt-auto h-16 flex items-center text-xl p-1 bg-white/10">
-    <LeftSVG/>
-    <span className="-translate-y-0.5">Zurück zur Karte</span>
-  </Link>
-}
+import {SpinnerSVG} from '@/svg'
 
 const Bude = () => {
   const bude = useBude()
