@@ -50,7 +50,6 @@ export const evalRouter = router({
     })
   }),
   update: protectedProcedure.input(validator).mutation(async ({ctx, input}) => {
-    console.log(ctx.session.user)
     await ctx.prisma.evalutation.update({
       where: {
         userId_budeId: {
