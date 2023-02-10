@@ -34,7 +34,11 @@ export const evalRouter = router({
         like: true
       }
     })
-    return {own, likes, dislikes}
+    return {
+      own: own === null ? {like: null} : own,
+      likes,
+      dislikes
+    }
   }),
   set: protectedProcedure.input(validator).mutation(async ({ctx, input}) => {
     return await ctx.prisma.evalutation.create({
@@ -46,6 +50,7 @@ export const evalRouter = router({
     })
   }),
   update: protectedProcedure.input(validator).mutation(async ({ctx, input}) => {
+    console.log(ctx.session.user)
     await ctx.prisma.evalutation.update({
       where: {
         userId_budeId: {

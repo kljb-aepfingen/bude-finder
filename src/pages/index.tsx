@@ -106,9 +106,9 @@ const Evaluation = ({id}: {id: string}) => {
   const session = useSession()
 
   const handleClick = useCallback((like: boolean) => () => {
-    if (!evaluation.data)
+    if (!evaluation.data || !evaluation.data.own)
       return
-    if (!evaluation.data.own) {
+    if (evaluation.data.own.like === null) {
       setEvaluation.mutate({id, like})
       return
     }
@@ -142,6 +142,14 @@ const Evaluation = ({id}: {id: string}) => {
     setEvaluation.isLoading ||
     updateEvaluation.isLoading ||
     deleteEvaluation.isLoading
+
+  if (session.status === 'authenticated' && !own) {
+    cacheControl.noCache = true
+    evaluation.refetch()
+      .then(() => {
+        cacheControl.noCache = false
+      })
+  }
 
   if (session.status !== 'authenticated') {
     return <div className="grid grid-cols-2 gap-2 h-12">
