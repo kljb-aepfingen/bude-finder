@@ -1,6 +1,6 @@
 import {type NextPage} from 'next'
 import Link from 'next/link'
-import {useEffect, useCallback, useRef, useState} from 'react'
+import {useEffect, useCallback, useState} from 'react'
 import {useRouter} from 'next/router'
 import {useSession} from 'next-auth/react'
 
@@ -96,7 +96,7 @@ const AddBude: NextPage = () => {
 
   return <>
     <Info {...{stage, setStage, name, setName, description, setDescription, submitted}}/>
-    <Navbar disableNext={!marker} onNext={handleNext}/>
+    <Navbar stage={stage} disableNext={!marker} onNext={handleNext}/>
   </>
 }
 
@@ -114,19 +114,6 @@ interface InfoProps {
 }
 
 const Info = ({setStage, stage, description, name, setDescription, setName, submitted}: InfoProps) => {
-  const ref = useRef<HTMLDivElement>(null)
-
-  useEffect(() => {
-    if (!ref.current)
-      return
-    const div = ref.current
-    if (stage === 'info') {
-      div.style.display = ' block'
-      return
-    }
-    div.style.display = ''
-  }, [stage])
-
   const handleDown = useCallback(() => {
     setStage('position')
   }, [setStage])
@@ -135,32 +122,36 @@ const Info = ({setStage, stage, description, name, setDescription, setName, subm
     set(event.currentTarget.value)
   }, [])
 
-  return <div ref={ref} className="hidden">
-    <div className="grid grid-cols-1">
-      <button onClick={handleDown} className="bg-slate-700 grid place-items-center">
-        <DownSVG/>
-      </button>
-      <div className="grid grid-cols-1 p-4">
-        <label htmlFor="name">Name der Bude/Landjugend</label>
-        <input
-          onChange={handleChange(setName)}
-          type="text"
-          name="name"
-          id="name"
-          value={name}
-          className={`${submitted && name === '' && 'border-red-600'}`}
-        />
-        <div className="p-1"/>
-        <label htmlFor="description">Beschreibt euch ein wenig</label>
-        <textarea
-          onChange={handleChange(setDescription)}
-          name="description"
-          rows={6}
-          id="description"
-          value={description}
-          className={`${submitted && description === '' && 'border-red-600'}`}
-        ></textarea>
-      </div>
+  if (stage == 'position') {
+    return <div className="text-xl p-4">
+      Klicke auf die Karte
+    </div>
+  }
+
+  return <div className="grid grid-cols-1">
+    <button onClick={handleDown} className="bg-slate-700 grid place-items-center">
+      <DownSVG/>
+    </button>
+    <div className="grid grid-cols-1 p-4">
+      <label htmlFor="name">Name der Bude/Landjugend</label>
+      <input
+        onChange={handleChange(setName)}
+        type="text"
+        name="name"
+        id="name"
+        value={name}
+        className={`${submitted && name === '' && 'border-red-600'}`}
+      />
+      <div className="p-1"/>
+      <label htmlFor="description">Beschreibt euch ein wenig</label>
+      <textarea
+        onChange={handleChange(setDescription)}
+        name="description"
+        rows={6}
+        id="description"
+        value={description}
+        className={`${submitted && description === '' && 'border-red-600'}`}
+      ></textarea>
     </div>
   </div>
 }
@@ -169,21 +160,22 @@ const Info = ({setStage, stage, description, name, setDescription, setName, subm
 
 interface NavbarProps {
   disableNext: boolean,
-  onNext: () => void
+  onNext: () => void,
+  stage: Stage
 }
 
-const Navbar = ({disableNext, onNext}: NavbarProps) => {
-  return <div className="h-16 grid grid-cols-2 items-center">
-    <Link href="/account" className="flex items-center text-xl">
+const Navbar = ({disableNext, stage, onNext}: NavbarProps) => {
+  return <div className="h-16 grid grid-cols-2 items-center text-xl">
+    <Link href="/account" className="flex items-center">
       <LeftSVG/>
       <span className="-translate-y-0.5">Zurück</span>
     </Link>
     <button
       disabled={disableNext}
       onClick={onNext}
-      className="text-xl flex justify-end items-center"
+      className="flex justify-end items-center disabled:opacity-40"
     >
-      <span className="-translate-y-0.5">{disableNext ? 'Plaziere einen Marker' : 'Weiter'}</span>
+      <span className="-translate-y-0.5">{stage == 'info' ? 'Speichern' : 'Weiter'}</span>
       <RightSVG/>
     </button>
   </div>
