@@ -102,13 +102,17 @@ const MyApp: AppType<{ session: Session | null }> = ({
   return (
     <SessionProvider session={session}>
       <Wrapper apiKey={env.NEXT_PUBLIC_MAPS_KEY}>
-        <div className="flex flex-col h-full">
-          <div ref={ref} className="flex-1"/>
-          {map && <mapContext.Provider value={{map}}>
-            <BudeProvider>
-              <Component {...pageProps} />
-            </BudeProvider>
-          </mapContext.Provider>}
+        <div className="grid h-full">
+          <div ref={ref} className="col-start-1 row-start-1"/>
+          <div className="relative pointer-events-none flex flex-col-reverse col-start-1 row-start-1">
+            <div className="pointer-events-auto max-w-2xl bg-slate-800 w-full mx-auto">
+              {map && <mapContext.Provider value={{map}}>
+                <BudeProvider>
+                  <Component {...pageProps} />
+                </BudeProvider>
+              </mapContext.Provider>}
+            </div>
+          </div>
         </div>
       </Wrapper>
     </SessionProvider>

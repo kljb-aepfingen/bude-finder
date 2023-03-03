@@ -46,13 +46,17 @@ const Home: NextPage = () => {
     </Head>
     <Info/>
     <Account/>
-    {info && <div className="fixed bottom-0 left-0 right-0 bg-slate-800">
-      <div className="grid grid-cols-1 p-4 gap-4">
-        <h1 className="text-4xl flex flex-wrap">{info.name}</h1>
-        <div className="text-lg">{info.description}</div>
-        <Evaluation id={info.id}/>
-      </div>
-    </div>}
+    {info &&
+      // <div className="fixed bottom-0 left-0 right-0 pointer-events-none">
+      //   <div className="bg-slate-800 max-w-xl mx-auto">
+          <div className="grid grid-cols-1 p-4 gap-4">
+            <h1 className="text-4xl flex flex-wrap">{info.name}</h1>
+            <div className="text-lg">{info.description}</div>
+            <Evaluation id={info.id}/>
+          </div>
+        // </div>
+      // </div>
+    }
   </>
 }
 
