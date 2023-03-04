@@ -105,7 +105,7 @@ const MyApp: AppType<{ session: Session | null }> = ({
         <div className="grid h-full">
           <div ref={ref} className="col-start-1 row-start-1"/>
           <div className="relative isolate pointer-events-none flex flex-col-reverse col-start-1 row-start-1">
-            <div className="pointer-events-auto max-w-2xl bg-slate-800 w-full mx-auto">
+            <div className="info-container pointer-events-auto max-w-2xl bg-slate-800 w-full mx-auto overflow-auto">
               {map && <mapContext.Provider value={{map}}>
                 <BudeProvider>
                   <Component {...pageProps} />
