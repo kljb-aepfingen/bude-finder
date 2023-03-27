@@ -7,7 +7,8 @@
     "dev": "next dev",
     "postinstall": "prisma generate",
     "lint": "next lint",
-    "start": "next start"
+    "start": "next start",
+    "pscale:proxy": "pscale connect bude-finder main --port 3309"
   },
   "dependencies": {
     "@googlemaps/react-wrapper": "^1.1.35",
