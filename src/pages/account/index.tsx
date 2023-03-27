@@ -46,7 +46,7 @@ export default Account
 const Bude = () => {
   const bude = useBude()
   const allBude = trpc.bude.all.useQuery()
-  const mutation = trpc.bude.delete.useMutation({
+  const deleteBude = trpc.bude.delete.useMutation({
     onSuccess: async () => {
       cacheControl.noCache = true
       await Promise.all([
@@ -58,12 +58,10 @@ const Bude = () => {
   })
 
   const handleDelete = useCallback(() => {
-    mutation.mutate()
-  }, [mutation])
+    deleteBude.mutate()
+  }, [deleteBude])
 
-  console.log(bude.isLoading)
-
-  if (bude.isLoading) {
+  if (bude.isLoading || deleteBude.isLoading) {
     return <div className="grid place-items-center">
       <SpinnerSVG/>
     </div>

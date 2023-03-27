@@ -35,6 +35,7 @@ const AddBude: NextPage = () => {
     if (bude.data) {
       setName(bude.data.name)
       setDescription(bude.data.description)
+      setContact(bude.data.contact)
     }
   }, [bude])
 

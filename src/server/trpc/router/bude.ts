@@ -14,7 +14,8 @@ export const budeRouter = router({
       description: bude.description,
       lat: bude.lat.toNumber(),
       lng: bude.lng.toNumber(),
-      active: bude.active
+      active: bude.active,
+      contact: bude.contact
     }
   }),
   add: protectedProcedure.input(budeValidator).mutation(async ({ctx, input}) => {
@@ -51,8 +52,8 @@ export const budeRouter = router({
     })
     return budes.map(({name, description, lat, lng, id}) => ({id, name, description, lat: lat.toNumber(), lng: lng.toNumber()}))
   }),
-  delete: protectedProcedure.mutation(async ({ctx}) => {
-    return await ctx.prisma.bude.update({
+  delete: protectedProcedure.mutation(({ctx}) => {
+    return ctx.prisma.bude.update({
       where: {
         userId: ctx.session.user.id
       },
