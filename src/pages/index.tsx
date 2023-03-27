@@ -63,7 +63,7 @@ import Link from 'next/link'
 import {signIn, useSession} from 'next-auth/react'
 import {toast} from 'react-hot-toast'
 
-import {AccountSVG, SignUpSVG, InfoSVG, SpinnerSVG} from '@/svg'
+import {AccountSVG, SignUpSVG, InfoSVG, SpinnerSVG, ThumbDownSVG, ThumbUpSVG} from '@/svg'
 
 const classNames = "h-16 w-16 rounded-full ml-auto fixed -z-10 bottom-4 bg-slate-800"
 
@@ -86,7 +86,7 @@ const formater = Intl.NumberFormat('de', {
   notation: 'compact'
 })
 const likeClassNames = (selected: boolean) => {
-  let names = 'border border-slate-600 p-2 rounded-full text-center'
+  let names = 'border border-slate-600 p-2 rounded-full text-center flex justify-center items-center gap-1'
   if (selected) {
     names += ' bg-slate-600'
   }
@@ -152,11 +152,11 @@ const Evaluation = ({id}: {id: string}) => {
     return <div className="grid grid-cols-2 gap-2 h-12">
       <div onClick={loginMessage} className={likeClassNames(false)}>
         {likes._count === 0 ? '' : formater.format(likes._count)}
-        👍
+        <ThumbUpSVG/>
       </div>
       <div onClick={loginMessage} className={likeClassNames(false)}>
         {dislikes._count === 0 ? '' : formater.format(dislikes._count)}
-        👎
+        <ThumbDownSVG/>
       </div>
     </div>
   }
@@ -167,18 +167,18 @@ const Evaluation = ({id}: {id: string}) => {
       onClick={handleClick(true)}
       className={likeClassNames(own?.like === true)}
     >
-      {spinner === true && <SpinnerSVG size={20}/>}
       {likes._count === 0 ? '' : formater.format(likes._count)}
-      👍
+      <ThumbUpSVG/>
+      {spinner === true && <SpinnerSVG size={20}/>}
     </button>
     <button
       disabled={disabled}
       onClick={handleClick(false)}
       className={likeClassNames(own?.like === false)}
     >
-      {spinner === false && <SpinnerSVG size={20}/>}
       {dislikes._count === 0 ? '' : formater.format(dislikes._count)}
-      👎
+      <ThumbDownSVG/>
+      {spinner === false && <SpinnerSVG size={20}/>}
     </button>
   </div>
 }
