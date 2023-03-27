@@ -63,7 +63,7 @@ import Link from 'next/link'
 import {signIn, useSession} from 'next-auth/react'
 import {toast} from 'react-hot-toast'
 
-import {AccountSVG, SignUpSVG, InfoSVG} from '@/svg'
+import {AccountSVG, SignUpSVG, InfoSVG, SpinnerSVG} from '@/svg'
 
 const classNames = "h-16 w-16 rounded-full ml-auto fixed -z-10 bottom-4 bg-slate-800"
 
@@ -99,16 +99,19 @@ const Evaluation = ({id}: {id: string}) => {
     cacheControl.noCache = true
     await evaluation.refetch()
     cacheControl.noCache = false
+    setSpinner(null)
   }}
   const setEvaluation = trpc.eval.set.useMutation(options)
   const updateEvaluation = trpc.eval.update.useMutation(options)
   const deleteEvaluation = trpc.eval.delete.useMutation(options)
 
   const session = useSession()
+  const [spinner, setSpinner] = useState<null | boolean>(null)
 
   const handleClick = useCallback((like: boolean) => () => {
     if (!evaluation.data || !evaluation.data.own)
       return
+    setSpinner(like)
     if (evaluation.data.own.like === null) {
       setEvaluation.mutate({id, like})
       return
@@ -164,6 +167,7 @@ const Evaluation = ({id}: {id: string}) => {
       onClick={handleClick(true)}
       className={likeClassNames(own?.like === true)}
     >
+      {spinner === true && <SpinnerSVG size={20}/>}
       {likes._count === 0 ? '' : formater.format(likes._count)}
       👍
     </button>
@@ -172,6 +176,7 @@ const Evaluation = ({id}: {id: string}) => {
       onClick={handleClick(false)}
       className={likeClassNames(own?.like === false)}
     >
+      {spinner === false && <SpinnerSVG size={20}/>}
       {dislikes._count === 0 ? '' : formater.format(dislikes._count)}
       👎
     </button>

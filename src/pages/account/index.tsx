@@ -7,6 +7,7 @@ import Link from 'next/link'
 import {cacheControl, trpc} from '@/utils/trpc'
 import {useBude} from '@/utils/bude'
 import BackToMap from '@/components/BackToMap'
+import {SpinnerSVG} from '@/svg'
 
 const button = 'text-center text-lg border border-slate-600 rounded-xl px-4 py-2'
 
@@ -42,8 +43,6 @@ const Account: NextPage = () => {
 
 export default Account
 
-import {SpinnerSVG} from '@/svg'
-
 const Bude = () => {
   const bude = useBude()
   const allBude = trpc.bude.all.useQuery()
@@ -61,6 +60,8 @@ const Bude = () => {
   const handleDelete = useCallback(() => {
     mutation.mutate()
   }, [mutation])
+
+  console.log(bude.isLoading)
 
   if (bude.isLoading) {
     return <div className="grid place-items-center">
