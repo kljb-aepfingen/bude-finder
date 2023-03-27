@@ -1,12 +1,5 @@
-import {z} from 'zod'
 import {protectedProcedure, publicProcedure, router} from '../trpc'
-
-const validator = z.object({
-  name: z.string(),
-  description: z.string(),
-  lat: z.number(),
-  lng: z.number()
-})
+import {budeValidator} from '@/utils/validators'
 
 export const budeRouter = router({
   own: protectedProcedure.query(async ({ctx}) => {
@@ -24,18 +17,15 @@ export const budeRouter = router({
       active: bude.active
     }
   }),
-  add: protectedProcedure.input(validator).mutation(async ({ctx, input}) => {
+  add: protectedProcedure.input(budeValidator).mutation(async ({ctx, input}) => {
     return await ctx.prisma.bude.create({
       data: {
-        lat: input.lat,
-        lng: input.lng,
-        name: input.name,
-        description: input.description,
+        ...input,
         userId: ctx.session.user.id
       }
     })
   }),
-  update: protectedProcedure.input(validator).mutation(async ({ctx, input}) => {
+  update: protectedProcedure.input(budeValidator).mutation(async ({ctx, input}) => {
     return await ctx.prisma.bude.update({
       where: {
         userId: ctx.session.user.id

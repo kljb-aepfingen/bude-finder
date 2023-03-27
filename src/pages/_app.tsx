@@ -12,6 +12,8 @@ import {mapContext} from '@/utils/map'
 import {useState, useCallback, useEffect, useRef} from 'react'
 import {BudeProvider} from '@/utils/bude'
 
+import {Toaster} from 'react-hot-toast'
+
 const defaultPosition = {
   latLng: {lat: 50, lng: 10.2},
   zoom: 7
@@ -102,6 +104,7 @@ const MyApp: AppType<{ session: Session | null }> = ({
   return (
     <SessionProvider session={session}>
       <Wrapper apiKey={env.NEXT_PUBLIC_MAPS_KEY}>
+        <Toaster position="top-center"/>
         <div className="grid h-full">
           <div ref={ref} className="col-start-1 row-start-1"/>
           <div className="relative isolate pointer-events-none flex flex-col-reverse col-start-1 row-start-1">

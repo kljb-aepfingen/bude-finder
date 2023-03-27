@@ -12,7 +12,7 @@ input, textarea {
 }
 
 label {
-  @apply text-lg mb-2
+  @apply text-lg mb-2;
 }
 
 body {
@@ -24,4 +24,8 @@ body {
 .info-container {
   max-height: 100vh;
   max-height: 100dvh;
+}
+
+.error-toast {
+  @apply bg-red-600;
 }

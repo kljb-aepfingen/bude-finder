@@ -1,6 +1,6 @@
 import {type NextPage} from 'next'
 import Link from 'next/link'
-import {useEffect, useCallback, useState} from 'react'
+import {useEffect, useCallback, useState, useRef} from 'react'
 import {useRouter} from 'next/router'
 import {useSession} from 'next-auth/react'
 
@@ -13,14 +13,21 @@ type Stage = 'position' | 'info'
 import {useBude} from '@/utils/bude'
 import {budeMarker} from '@/utils/marker'
 
+import {contactValidator} from '@/utils/validators'
+import {toast} from 'react-hot-toast'
+
 const AddBude: NextPage = () => {
   const session = useSession()
   const router = useRouter()
 
   const {marker, stage, setStage} = useAddBude()
   const [name, setName] = useState('')
+  const nameRef = useRef<HTMLInputElement>(null)
   const [description, setDescription] = useState('')
-  const [submitted, setSubmitted] = useState(false)
+  const descriptionRef = useRef<HTMLTextAreaElement>(null)
+  const [contact, setContact] = useState('')
+  const contactRef = useRef<HTMLInputElement>(null)
+  const [error, setError] = useState({name: false, description: false, contact: false})
 
   const bude = useBude()
 
@@ -51,28 +58,76 @@ const AddBude: NextPage = () => {
       router.push('/')
   }, [session, router])
 
-  const handleNext = useCallback(() => {
-    if (stage === 'position') {
-      setStage('info')
-      return
-    }
-    if (name === '' || description === '') {
-      setSubmitted(true)
+  const setInfo = useCallback(() => {
+    if (!nameRef.current || !descriptionRef.current || !contactRef.current) {
       return
     }
 
+    const name = nameRef.current.value
+    setName(name)
+    const description = descriptionRef.current.value
+    setDescription(description)
+    const contact = contactRef.current.value
+    setContact(contact)
+
+    return {
+      name,
+      description,
+      contact
+    }
+  }, [])
+
+  const handleNextPosition = useCallback(() => {
     if (!marker) {
+      toast.error('Tippe auf die Stelle wo eure Bude / Landjugend ist')
+      return
+    }
+
+    setStage('info')
+  }, [marker, setStage])
+
+  const handleNextInfo = useCallback(() => {
+    const info = setInfo()
+    if (!info || !marker) {
+      toast.error('Etwas ist schief gegangen')
+      return
+    }
+
+    const {name, description, contact} = info
+    if (name === '') {
+      setError(error => ({...error, name: true}))
+      toast.error('Es fehlt ein Name')
+      return
+    }
+    setError(error => ({...error, name: false}))
+
+    if (description === '') {
+      setError(error => ({...error, description: true}))
+      toast.error('Es fehlt eine kurze Beschreibung')
+      return
+    }
+    setError(error => ({...error, description: false}))
+
+    if (contact === '') {
+      setError(error => ({...error, contact: true}))
+      toast.error('Es fehlt die Kontaktinformation')
+      return
+    }
+    setError(error => ({...error, contact: false}))
+
+    if (!contactValidator.safeParse(contact).success) {
+      toast.error('Kontakt muss eine Email oder eine Nummer sein')
       return
     }
 
     const position = marker.getPosition()
     if (!position) {
+      toast.error('Etwas ist schief gegangen')
       return
     }
 
     const data = {
-      name,
-      description,
+      name, description, contact,
       lat: position.lat(),
       lng: position.lng()
     }
@@ -83,20 +138,28 @@ const AddBude: NextPage = () => {
     }
 
     addBude.mutate(data)
+  }, [setInfo, marker, updateBude, addBude, bude.data])
+
+  const handleNext = useCallback(() => {
+    if (stage === 'position') {
+      handleNextPosition()
+    } else if (stage === 'info') {
+      handleNextInfo()
+    }
   }, [
-    stage,
-    setStage,
-    name,
-    description,
-    marker,
-    addBude,
-    updateBude,
-    bude
+    handleNextPosition,
+    handleNextInfo,
+    stage
   ])
 
+  const back = useCallback(() => {
+    setStage('position')
+    setInfo()
+  }, [setStage, setInfo])
+
   return <>
-    <Info {...{stage, setStage, name, setName, description, setDescription, submitted}}/>
-    <Navbar stage={stage} disableNext={!marker} onNext={handleNext}/>
+    <Info {...{stage, back, setStage, name, nameRef, description, descriptionRef, contact, contactRef, error}}/>
+    <Navbar stage={stage} onNext={handleNext}/>
   </>
 }
 
@@ -105,23 +168,27 @@ export default AddBude
 
 interface InfoProps {
   stage: Stage,
-  setStage: (stage: Stage) => void,
+  back: () => void,
   name: string,
-  setName: (value: string) => void,
+  nameRef: React.RefObject<HTMLInputElement>,
   description: string,
-  setDescription: (value: string) => void,
-  submitted: boolean
+  descriptionRef: React.RefObject<HTMLTextAreaElement>,
+  contact: string,
+  contactRef: React.RefObject<HTMLInputElement>,
+  error: {name: boolean, description: boolean, contact: boolean}
 }
 
-const Info = ({setStage, stage, description, name, setDescription, setName, submitted}: InfoProps) => {
-  const handleDown = useCallback(() => {
-    setStage('position')
-  }, [setStage])
-
-  const handleChange = useCallback((set: (value: string) => void) => (event: React.ChangeEvent<{value: string}>) => {
-    set(event.currentTarget.value)
-  }, [])
-
+const Info = ({
+  back,
+  stage,
+  name,
+  nameRef,
+  description,
+  descriptionRef,
+  contact,
+  contactRef,
+  error
+}: InfoProps) => {
   if (stage == 'position') {
     return <div className="text-xl p-4">
       Klicke auf die Karte
@@ -129,29 +196,39 @@ const Info = ({setStage, stage, description, name, setDescription, setName, subm
   }
 
   return <div className="grid grid-cols-1">
-    <button onClick={handleDown} className="bg-slate-700 grid place-items-center">
+    <button onClick={back} className="bg-slate-700 grid place-items-center">
       <DownSVG/>
     </button>
     <div className="grid grid-cols-1 p-4">
       <label htmlFor="name">Name der Bude/Landjugend</label>
       <input
-        onChange={handleChange(setName)}
         type="text"
         name="name"
         id="name"
-        value={name}
-        className={`${submitted && name === '' && 'border-red-600'}`}
+        defaultValue={name}
+        className={`${error.name && 'border-red-600'}`}
+        ref={nameRef}
       />
       <div className="p-1"/>
       <label htmlFor="description">Beschreibt euch ein wenig</label>
       <textarea
-        onChange={handleChange(setDescription)}
         name="description"
         rows={6}
         id="description"
-        value={description}
-        className={`${submitted && description === '' && 'border-red-600'}`}
+        defaultValue={description}
+        className={`${error.description && 'border-red-600'}`}
+        ref={descriptionRef}
       ></textarea>
+      <div className="p-1"/>
+      <label htmlFor="contact">Kontakt (Email oder Nummer)</label>
+      <input
+        type="text"
+        name="contact"
+        id="contact"
+        defaultValue={contact}
+        className={`${error.contact && 'border-red-600'}`}
+        ref={contactRef}
+      />
     </div>
   </div>
 }
@@ -159,19 +236,17 @@ const Info = ({setStage, stage, description, name, setDescription, setName, subm
 
 
 interface NavbarProps {
-  disableNext: boolean,
   onNext: () => void,
   stage: Stage
 }
 
-const Navbar = ({disableNext, stage, onNext}: NavbarProps) => {
+const Navbar = ({stage, onNext}: NavbarProps) => {
   return <div className="h-16 grid grid-cols-2 items-center text-xl">
     <Link href="/account" className="flex items-center">
       <LeftSVG/>
       <span className="-translate-y-0.5">Zurück</span>
     </Link>
     <button
-      disabled={disableNext}
       onClick={onNext}
       className="flex justify-end items-center disabled:opacity-40"
     >
