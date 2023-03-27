@@ -5,7 +5,7 @@ import {useRouter} from 'next/router'
 import {useSession} from 'next-auth/react'
 
 import {useMap} from '@/utils/map'
-import {LeftSVG, RightSVG, DownSVG} from '@/svg'
+import {LeftSVG, RightSVG, DownSVG, SpinnerSVG} from '@/svg'
 import {trpc, cacheControl} from '@/utils/trpc'
 
 type Stage = 'position' | 'info'
@@ -160,7 +160,7 @@ const AddBude: NextPage = () => {
 
   return <>
     <Info {...{stage, back, setStage, name, nameRef, description, descriptionRef, contact, contactRef, error}}/>
-    <Navbar stage={stage} onNext={handleNext}/>
+    <Navbar stage={stage} loading={addBude.isLoading || updateBude.isLoading} handleNext={handleNext}/>
   </>
 }
 
@@ -234,23 +234,23 @@ const Info = ({
   </div>
 }
 
-
-
 interface NavbarProps {
-  onNext: () => void,
-  stage: Stage
+  handleNext: () => void,
+  stage: Stage,
+  loading: boolean
 }
 
-const Navbar = ({stage, onNext}: NavbarProps) => {
+const Navbar = ({stage, handleNext, loading}: NavbarProps) => {
   return <div className="h-16 grid grid-cols-2 items-center text-xl">
     <Link href="/account" className="flex items-center">
       <LeftSVG/>
       <span className="-translate-y-0.5">Zurück</span>
     </Link>
     <button
-      onClick={onNext}
+      onClick={handleNext}
       className="flex justify-end items-center disabled:opacity-40"
     >
+      {loading && <SpinnerSVG/>}
       <span className="-translate-y-0.5">{stage == 'info' ? 'Speichern' : 'Weiter'}</span>
       <RightSVG/>
     </button>

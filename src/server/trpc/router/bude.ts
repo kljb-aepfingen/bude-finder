@@ -18,16 +18,16 @@ export const budeRouter = router({
       contact: bude.contact
     }
   }),
-  add: protectedProcedure.input(budeValidator).mutation(async ({ctx, input}) => {
-    return await ctx.prisma.bude.create({
+  add: protectedProcedure.input(budeValidator).mutation(({ctx, input}) => {
+    return ctx.prisma.bude.create({
       data: {
         ...input,
         userId: ctx.session.user.id
       }
     })
   }),
-  update: protectedProcedure.input(budeValidator).mutation(async ({ctx, input}) => {
-    return await ctx.prisma.bude.update({
+  update: protectedProcedure.input(budeValidator).mutation(({ctx, input}) => {
+    return ctx.prisma.bude.update({
       where: {
         userId: ctx.session.user.id
       },
