@@ -20,7 +20,7 @@ export const evalRouter = router({
     })
 
     if (!ctx.session || !ctx.session.user) {
-      return {likes, dislikes}
+      return {likes, dislikes, own: null}
     }
 
     const own = await ctx.prisma.evalutation.findFirst({

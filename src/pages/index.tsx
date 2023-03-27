@@ -61,6 +61,7 @@ export default Home
 
 import Link from 'next/link'
 import {signIn, useSession} from 'next-auth/react'
+import {toast} from 'react-hot-toast'
 
 import {AccountSVG, SignUpSVG, InfoSVG} from '@/svg'
 
@@ -125,18 +126,11 @@ const Evaluation = ({id}: {id: string}) => {
     id
   ])
 
-  if (!evaluation.data) {
-    return <div className="grid grid-cols-2 gap-2 h-12">
-      <div className={likeClassNames(false)}>
-        👍
-      </div>
-      <div className={likeClassNames(false)}>
-        👎
-      </div>
-    </div>
-  }
+  const loginMessage = useCallback(() => {
+    toast.error('Du musst angemeldet sein um eine Bewertungen abgeben zu können')
+  }, [])
 
-  const {dislikes, likes, own} = evaluation.data
+  const {dislikes, likes, own} = evaluation.data ?? {dislikes: {_count: 0}, likes: {_count: 0}, own: null}
   const disabled =
     evaluation.isLoading ||
     setEvaluation.isLoading ||
@@ -153,11 +147,11 @@ const Evaluation = ({id}: {id: string}) => {
 
   if (session.status !== 'authenticated') {
     return <div className="grid grid-cols-2 gap-2 h-12">
-      <div className={likeClassNames(false)}>
+      <div onClick={loginMessage} className={likeClassNames(false)}>
         {likes._count === 0 ? '' : formater.format(likes._count)}
         👍
       </div>
-      <div className={likeClassNames(false)}>
+      <div onClick={loginMessage} className={likeClassNames(false)}>
         {dislikes._count === 0 ? '' : formater.format(dislikes._count)}
         👎
       </div>
