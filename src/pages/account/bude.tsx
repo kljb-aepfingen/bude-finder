@@ -1,12 +1,11 @@
 import {type NextPage} from 'next'
-import Link from 'next/link'
 import {useEffect, useCallback, useState, useRef} from 'react'
 import {useRouter} from 'next/router'
 import {useSession} from 'next-auth/react'
 
 import {useMap} from '@/utils/map'
 import {LeftSVG, RightSVG, DownSVG, SpinnerSVG} from '@/svg'
-import {trpc, cacheControl} from '@/utils/trpc'
+import {trpc, cacheControl, type RouterOutputs} from '@/utils/trpc'
 
 type Stage = 'position' | 'info'
 
@@ -40,14 +39,14 @@ const AddBude: NextPage = () => {
   }, [bude])
 
   const allBude = trpc.bude.all.useQuery()
-  const options = {onSuccess: async () => {
+  const options = {onSuccess: async (data: RouterOutputs['bude']['add']) => {
     cacheControl.noCache = true
     await Promise.all([
       bude.refetch(),
       allBude.refetch()
     ])
     cacheControl.noCache = false
-    router.push('/')
+    router.push(`/?budeId=${data.id}`)
   }}
   const addBude = trpc.bude.add.useMutation(options)
   const updateBude = trpc.bude.update.useMutation(options)
