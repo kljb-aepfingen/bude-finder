@@ -17,6 +17,7 @@ interface Info {
 const Home: NextPage = () => {
   const router = useRouter()
   const {addListener, removeListener, budes, map, position} = useMap()
+  const firstPosition = useRef(position)
   const budeId = useRef(typeof router.query.budeId === 'string' ? router.query.budeId : null)
   const [info, setInfo] = useState<{
     bude: null | Parameters<MapContextEvents['select']>[0],
@@ -35,7 +36,7 @@ const Home: NextPage = () => {
   }
 
   useEffect(() => {
-    if (position && !budeId.current) {
+    if (position && !firstPosition.current && !budeId.current) {
       map.setCenter(position.latLng)
       map.setZoom(position.zoom)
     }
