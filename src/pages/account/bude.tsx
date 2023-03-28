@@ -199,14 +199,14 @@ const useSave = (
   setError: (setter: (prev: Error) => Error) => void
 ) => {
   const router = useRouter()
-  const allBude = trpc.bude.own.useQuery()
   const bude = useBude()
+  const {budes} = useMap()
 
   const options = {onSuccess: async (data: RouterOutputs['bude']['add']) => {
     cacheControl.noCache = true
     await Promise.all([
-      bude.refetch(),
-      allBude.refetch()
+      budes.refetch(),
+      bude.refetch()
     ])
     cacheControl.noCache = false
     router.push(`/?budeId=${data.id}`)

@@ -6,6 +6,7 @@ import Link from 'next/link'
 
 import {cacheControl, trpc} from '@/utils/trpc'
 import {useBude} from '@/utils/bude'
+import {useMap} from '@/utils/map'
 import Back from '@/components/Back'
 import {SpinnerSVG} from '@/svg'
 
@@ -45,13 +46,13 @@ export default Account
 
 const Bude = () => {
   const bude = useBude()
-  const allBude = trpc.bude.all.useQuery()
+  const {budes} = useMap()
   const deleteBude = trpc.bude.delete.useMutation({
     onSuccess: async () => {
       cacheControl.noCache = true
       await Promise.all([
         bude.refetch(),
-        allBude.refetch()
+        budes.refetch()
       ])
       cacheControl.noCache = false
     }
