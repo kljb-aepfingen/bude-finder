@@ -23,7 +23,7 @@ export const reportRouter = router({
       throw new TRPCError({code: 'NOT_FOUND'})
     }
 
-    const data: Report = {
+    const data: Omit<Report, 'createdAt'> = {
       budeId: input.budeId,
       typeId: type.id,
       userId: ctx.session.user.id,

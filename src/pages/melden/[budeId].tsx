@@ -81,7 +81,7 @@ const useSave = (
     router.push(`/?budeId=${router.query.budeId}`)
   }, onError: () => {
     toast.error('Etwas ist schief gegangen')
-    router.push(`/budeId=${router.query.budeId}`)
+    router.push(`/?budeId=${router.query.budeId}`)
   }})
 
   const handleSave = useCallback(() => {
@@ -111,8 +111,8 @@ const useSave = (
 
 
     const data = {
-      description,
-      contact,
+      description: reportType.description ? description : undefined,
+      contact: reportType.contact ? contact : undefined,
       budeId: router.query.budeId,
       typeId: reportType.id
     }
