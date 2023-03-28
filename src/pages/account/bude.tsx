@@ -152,7 +152,7 @@ const Info = ({
       ></textarea>
       <div className="p-1"/>
       <label htmlFor="contact" className="flex gap-1 items-center">
-        Kontakt (Email oder Nummer)
+        Kontakt* (Email oder Nummer)
         <span className="text-sm opacity-70">({contact.length}/{caps.contact})</span>
       </label>
       <input
@@ -163,6 +163,8 @@ const Info = ({
         className={`${error.contact && 'border-red-600'}`}
         onChange={handleContactChange}
       />
+      <div className="p-1"/>
+      <div>*Kontakt ist nicht öffentlich sichtbar</div>
     </div>
   </div>
 }
