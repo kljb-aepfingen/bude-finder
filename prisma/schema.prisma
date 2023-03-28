@@ -113,6 +113,7 @@ model Report {
   budeId      String
   contact     String?
   description String?
+  createdAt   DateTime   @default(now())
 
   type        ReportType @relation(fields: [typeId], references: [id], onDelete: Restrict)
   user        User       @relation(fields: [userId], references: [id], onDelete: Cascade)
