@@ -11,7 +11,7 @@ import {useMap} from '@/utils/map'
 
 import {contactValidator} from '@/utils/validators'
 
-type ReportType = RouterOutputs['report']['types'][number]
+type ReportType = NonNullable<RouterOutputs['report']['types']['types']>[number]
 const Melden: NextPage = () => {
   const router = useRouter()
   const {budes, map} = useMap()
@@ -113,6 +113,13 @@ const Melden: NextPage = () => {
     </>
   }
 
+  if (!reportTypes.data.types) {
+    return <>
+      <div className="p-4 grid justify-center text-xl">Du hast diese Bude/Landjugend bereits gemeldet</div>
+      <BackToMap/>
+    </>
+  }
+
   if (reportType === null) {
     return <>
       <div className="p-4">
@@ -121,7 +128,7 @@ const Melden: NextPage = () => {
         <div>Wähle einen Grund</div>
         <div className="p-1"/>
         <ul className="grid grid-cols-1 gap-1">
-          {reportTypes.data.map(type => <li key={type.id}>
+          {reportTypes.data.types.map(type => <li key={type.id}>
             <button
               onClick={selectReport(type)}
               className="border border-slate-600 p-2 rounded-lg w-full"

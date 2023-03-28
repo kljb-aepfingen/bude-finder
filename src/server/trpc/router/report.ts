@@ -4,8 +4,16 @@ import {TRPCError} from '@trpc/server'
 import type {Report} from '@prisma/client'
 
 export const reportRouter = router({
-  types: protectedProcedure.query(({ctx}) => {
-    return ctx.prisma.reportType.findMany()
+  types: protectedProcedure.query(async ({ctx}) => {
+    const ownReport = await ctx.prisma.report.findFirst({where: {
+      userId: ctx.session.user.id
+    }})
+    if (ownReport) {
+      return {types: null}
+    }
+    return {
+      types: await ctx.prisma.reportType.findMany()
+    }
   }),
   add: protectedProcedure.input(reportValidator).mutation(async ({ctx, input}) => {
     await new Promise(resolve => setTimeout(resolve, 1000))
