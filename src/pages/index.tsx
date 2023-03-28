@@ -1,7 +1,7 @@
 import { type NextPage } from "next"
 import {useRouter} from 'next/router'
 import Head from "next/head"
-import {useEffect, useState, useCallback} from 'react'
+import {useEffect, useState, useCallback, useRef} from 'react'
 
 import {useMap, type MapContextEvents} from '@/utils/map'
 import {cacheControl, trpc} from '@/utils/trpc'
@@ -17,32 +17,34 @@ interface Info {
 const Home: NextPage = () => {
   const router = useRouter()
   const {addListener, removeListener, budes, map, position} = useMap()
+  const budeId = useRef(typeof router.query.budeId === 'string' ? router.query.budeId : null)
   const [info, setInfo] = useState<{
     bude: null | Parameters<MapContextEvents['select']>[0],
-    budeId: null | string
-  }>({bude: null, budeId: typeof router.query.budeId === 'string' ? router.query.budeId : null})
+    id: null | string
+  }>({bude: null, id: budeId.current})
 
-  if (info.budeId && !info.bude) {
-    const bude = budes.data.find(({id}) => id === info.budeId)
+  if (info.id && !info.bude) {
+    const bude = budes.data.find(({id}) => id === info.id)
     if (bude) {
-      setInfo({bude, budeId: info.budeId})
+      setInfo({bude, id: bude.id})
       map.setCenter(bude)
       map.setZoom(19)
     } else {
       router.replace('/')
-      setInfo({bude: null, budeId: null})
     }
   }
 
-  if (position && !info.budeId) {
-    map.setCenter(position.latLng)
-    map.setZoom(position.zoom)
-  }
+  useEffect(() => {
+    if (position && !budeId.current) {
+      map.setCenter(position.latLng)
+      map.setZoom(position.zoom)
+    }
+  }, [position, map])
   
   useEffect(() => {
     const select: MapContextEvents['select'] = (bude) => {
       router.replace(`/?budeId=${bude.id}`)
-      setInfo({bude, budeId: bude.id})
+      setInfo({bude, id: bude.id})
       map.setCenter(bude)
       const zoom = map.getZoom()
       if (zoom === 19) {
@@ -53,7 +55,7 @@ const Home: NextPage = () => {
     }
     const deselect: MapContextEvents['deselect'] = () => {
       router.replace('/')
-      setInfo({bude: null, budeId: null})
+      setInfo({bude: null, id: null})
     }
     addListener('select', select)
     addListener('deselect', deselect)
