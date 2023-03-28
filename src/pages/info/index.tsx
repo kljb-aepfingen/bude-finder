@@ -1,4 +1,4 @@
-import BackToMap from '@/components/BackToMap'
+import Back from '@/components/Back'
 
 import type {NextPage} from 'next'
 
@@ -16,7 +16,7 @@ const Info: NextPage = () => {
          eure Bude/Landjugend auf der Karte markieren. Ganz einfach
       </div>
     </main>
-    <BackToMap/>
+    <Back/>
   </div>
 }
 export default Info

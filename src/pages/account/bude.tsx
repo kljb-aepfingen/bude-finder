@@ -242,11 +242,12 @@ interface NavbarProps {
 }
 
 const Navbar = ({stage, handleNext, loading}: NavbarProps) => {
+  const router = useRouter()
   return <div className="h-16 grid grid-cols-2 items-center text-xl">
-    <Link href="/account" className="flex items-center">
+    <button onClick={() => router.back()} className="flex items-center">
       <LeftSVG/>
       <span className="-translate-y-0.5">Zurück</span>
-    </Link>
+    </button>
     <button
       onClick={handleNext}
       className="flex justify-end items-center disabled:opacity-40"

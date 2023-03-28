@@ -6,7 +6,7 @@ import Link from 'next/link'
 
 import {cacheControl, trpc} from '@/utils/trpc'
 import {useBude} from '@/utils/bude'
-import BackToMap from '@/components/BackToMap'
+import Back from '@/components/Back'
 import {SpinnerSVG} from '@/svg'
 
 const button = 'text-center text-lg border border-slate-600 rounded-xl px-4 py-2'
@@ -37,7 +37,7 @@ const Account: NextPage = () => {
         <button className={button} onClick={() => signOut({callbackUrl: '/'})}>Sign Out</button>
       </div>
     </main>
-    <BackToMap/>
+    <Back/>
   </div> 
 }
 
