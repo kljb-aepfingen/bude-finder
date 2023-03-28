@@ -76,6 +76,7 @@ const Bude = () => {
   return <div className="flex flex-col gap-1">
     <h2 className="text-xl">{bude.data.name}</h2>      
     <div className="ml-4">{bude.data.description}</div>
+    <div className="p-1"/>
     <div className="grid grid-cols-2 gap-2">
       <Link href={`/account/bude`} className={button}>
         Bearbeiten
