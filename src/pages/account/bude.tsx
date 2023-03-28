@@ -1,11 +1,11 @@
 import {type NextPage} from 'next'
 import {useEffect, useCallback, useState, useMemo} from 'react'
 import {useRouter} from 'next/router'
-import {useSession} from 'next-auth/react'
 
 import {useMap} from '@/utils/map'
-import {LeftSVG, RightSVG, DownSVG, SpinnerSVG} from '@/svg'
+import {LeftSVG, RightSVG, SpinnerSVG} from '@/svg'
 import {trpc, cacheControl, type RouterOutputs} from '@/utils/trpc'
+import {useProtected} from '@/utils/protected'
 
 type Stage = 'position' | 'info'
 
@@ -21,17 +21,20 @@ const caps = {
   contact: 100
 }
 
+type Error = {
+  name: boolean,
+  description: boolean,
+  contact: boolean
+}
+
 const AddBude: NextPage = () => {
-  const session = useSession()
   const router = useRouter()
 
   const {marker, stage, setStage} = useAddBude()
   const [name, setName] = useState('')
   const [description, setDescription] = useState('')
   const [contact, setContact] = useState('')
-  const [error, setError] = useState({name: false, description: false, contact: false})
-
-  const bude = useBude()
+  const [error, setError] = useState<Error>({name: false, description: false, contact: false})
 
   const handleChange = useCallback((setter: (value: string) => void, max: number) => (event: React.ChangeEvent<{value: string}>) => {
     if (event.currentTarget.value.length <= max) {
@@ -42,6 +45,8 @@ const AddBude: NextPage = () => {
   const handleDescriptionChange = useMemo(() => handleChange(setDescription, caps.description), [handleChange])
   const handleContactChange = useMemo(() => handleChange(setContact, caps.contact), [handleChange])
 
+  const {bude, isLoading, save} = useSave(marker, name, description, contact, setError)
+
   useEffect(() => {
     if (bude.data) {
       setName(bude.data.name)
@@ -50,7 +55,153 @@ const AddBude: NextPage = () => {
     }
   }, [bude.data])
 
-  const allBude = trpc.bude.all.useQuery()
+  useProtected()
+
+  const handleNext = useCallback(() => {
+    if (stage === 'position') {
+      if (!marker) {
+        toast.error('Tippe auf die Stelle wo eure Bude / Landjugend ist')
+        return
+      }
+      setStage('info')
+    } else if (stage === 'info') {
+      save()
+    }
+  }, [marker, save, stage, setStage])
+
+  const handleBack = useCallback(() => {
+    if (stage === 'position') {
+      router.back()
+    } else {
+      setStage('position')
+    }
+  }, [stage, setStage, router])
+
+  return <>
+    <Info {...{
+      stage,
+      setStage,
+      name,
+      handleNameChange,
+      description,
+      handleDescriptionChange,
+      contact,
+      handleContactChange,
+      error
+    }}/>
+    <Navbar stage={stage} loading={isLoading} handleNext={handleNext} handleBack={handleBack}/>
+  </>
+}
+
+export default AddBude
+
+
+interface InfoProps {
+  stage: Stage,
+  name: string,
+  handleNameChange: React.ChangeEventHandler<{value: string}>
+  description: string,
+  handleDescriptionChange: React.ChangeEventHandler<{value: string}>
+  contact: string,
+  handleContactChange: React.ChangeEventHandler<{value: string}>
+  error: {name: boolean, description: boolean, contact: boolean}
+}
+
+const Info = ({
+  stage,
+  name,
+  handleNameChange,
+  description,
+  handleDescriptionChange,
+  contact,
+  handleContactChange,
+  error
+}: InfoProps) => {
+  if (stage == 'position') {
+    return <div className="text-xl p-4">
+      Klicke auf die Karte
+    </div>
+  }
+
+  return <div className="grid grid-cols-1">
+    <div className="grid grid-cols-1 p-4">
+      <label htmlFor="name" className="flex gap-1 items-center">
+        Name der Bude/Landjugend
+        <span className="text-sm opacity-70">({name.length}/{caps.name})</span>
+      </label>
+      <input
+        type="text"
+        name="name"
+        id="name"
+        value={name}
+        className={`${error.name && 'border-red-600'}`}
+        onChange={handleNameChange}
+      />
+      <div className="p-1"/>
+      <label htmlFor="description" className="flex gap-1 items-center">
+        Beschreibt euch ein wenig
+        <span className="text-sm opacity-70">({description.length}/{caps.description})</span>
+      </label>
+      <textarea
+        name="description"
+        rows={6}
+        id="description"
+        value={description}
+        className={`${error.description && 'border-red-600'}`}
+        onChange={handleDescriptionChange}
+      ></textarea>
+      <div className="p-1"/>
+      <label htmlFor="contact" className="flex gap-1 items-center">
+        Kontakt (Email oder Nummer)
+        <span className="text-sm opacity-70">({contact.length}/{caps.contact})</span>
+      </label>
+      <input
+        type="text"
+        name="contact"
+        id="contact"
+        value={contact}
+        className={`${error.contact && 'border-red-600'}`}
+        onChange={handleContactChange}
+      />
+    </div>
+  </div>
+}
+
+interface NavbarProps {
+  handleNext: () => void,
+  handleBack: () => void,
+  stage: Stage,
+  loading: boolean
+}
+
+const Navbar = ({stage, handleNext, handleBack, loading}: NavbarProps) => {
+  return <div className="h-16 grid grid-cols-2 items-center text-xl">
+    <button onClick={handleBack} className="flex items-center">
+      <LeftSVG/>
+      <span className="-translate-y-0.5">Zurück</span>
+    </button>
+    <button
+      onClick={handleNext}
+      className="flex justify-end items-center disabled:opacity-40"
+    >
+      {loading && <SpinnerSVG/>}
+      <span className="-translate-y-0.5">{stage == 'info' ? 'Speichern' : 'Weiter'}</span>
+      <RightSVG/>
+    </button>
+  </div>
+}
+
+const useSave = (
+  marker: google.maps.Marker | null,
+  name: string,
+  description: string,
+  contact: string,
+  setError: (setter: (prev: Error) => Error) => void
+) => {
+  const router = useRouter()
+  const allBude = trpc.bude.own.useQuery()
+  const bude = useBude()
+
   const options = {onSuccess: async (data: RouterOutputs['bude']['add']) => {
     cacheControl.noCache = true
     await Promise.all([
@@ -63,23 +214,7 @@ const AddBude: NextPage = () => {
   const addBude = trpc.bude.add.useMutation(options)
   const updateBude = trpc.bude.update.useMutation(options)
 
-  useEffect(() => {
-    if (session.status === 'loading')
-      return
-    if (session.status !== 'authenticated')
-      router.push('/')
-  }, [session, router])
-
-  const handleNextPosition = useCallback(() => {
-    if (!marker) {
-      toast.error('Tippe auf die Stelle wo eure Bude / Landjugend ist')
-      return
-    }
-
-    setStage('info')
-  }, [marker, setStage])
-
-  const handleNextInfo = useCallback(() => {
+  const save = useCallback(() => {
     if (!marker) {
       toast.error('Etwas ist schief gegangen')
       return
@@ -130,146 +265,14 @@ const AddBude: NextPage = () => {
     }
 
     addBude.mutate(data)
-  }, [marker, updateBude, addBude, bude.data, name, description, contact])
+  }, [marker, updateBude, addBude, bude.data, name, description, contact, setError])
 
-  const handleNext = useCallback(() => {
-    if (stage === 'position') {
-      handleNextPosition()
-    } else if (stage === 'info') {
-      handleNextInfo()
-    }
-  }, [
-    handleNextPosition,
-    handleNextInfo,
-    stage
-  ])
-
-  const back = useCallback(() => {
-    setStage('position')
-  }, [setStage])
-
-  return <>
-    <Info {...{
-      stage,
-      back,
-      setStage,
-      name,
-      handleNameChange,
-      description,
-      handleDescriptionChange,
-      contact,
-      handleContactChange,
-      error
-    }}/>
-    <Navbar stage={stage} loading={addBude.isLoading || updateBude.isLoading} handleNext={handleNext}/>
-  </>
-}
-
-export default AddBude
-
-
-interface InfoProps {
-  stage: Stage,
-  back: () => void,
-  name: string,
-  handleNameChange: React.ChangeEventHandler<{value: string}>
-  description: string,
-  handleDescriptionChange: React.ChangeEventHandler<{value: string}>
-  contact: string,
-  handleContactChange: React.ChangeEventHandler<{value: string}>
-  error: {name: boolean, description: boolean, contact: boolean}
-}
-
-const Info = ({
-  back,
-  stage,
-  name,
-  handleNameChange,
-  description,
-  handleDescriptionChange,
-  contact,
-  handleContactChange,
-  error
-}: InfoProps) => {
-
-  if (stage == 'position') {
-    return <div className="text-xl p-4">
-      Klicke auf die Karte
-    </div>
+  return {
+    save,
+    isLoading: addBude.isLoading || updateBude.isLoading,
+    bude
   }
-
-  return <div className="grid grid-cols-1">
-    <button onClick={back} className="bg-slate-700 grid place-items-center">
-      <DownSVG/>
-    </button>
-    <div className="grid grid-cols-1 p-4">
-      <label htmlFor="name" className="flex gap-1 items-center">
-        Name der Bude/Landjugend
-        <span className="text-sm opacity-70">({name.length}/{caps.name})</span>
-      </label>
-      <input
-        type="text"
-        name="name"
-        id="name"
-        value={name}
-        className={`${error.name && 'border-red-600'}`}
-        onChange={handleNameChange}
-      />
-      <div className="p-1"/>
-      <label htmlFor="description" className="flex gap-1 items-center">
-        Beschreibt euch ein wenig
-        <span className="text-sm opacity-70">({description.length}/{caps.description})</span>
-      </label>
-      <textarea
-        name="description"
-        rows={6}
-        id="description"
-        value={description}
-        className={`${error.description && 'border-red-600'}`}
-        onChange={handleDescriptionChange}
-      ></textarea>
-      <div className="p-1"/>
-      <label htmlFor="contact" className="flex gap-1 items-center">
-        Kontakt (Email oder Nummer)
-        <span className="text-sm opacity-70">({contact.length}/{caps.contact})</span>
-      </label>
-      <input
-        type="text"
-        name="contact"
-        id="contact"
-        value={contact}
-        className={`${error.contact && 'border-red-600'}`}
-        onChange={handleContactChange}
-      />
-    </div>
-  </div>
 }
-
-interface NavbarProps {
-  handleNext: () => void,
-  stage: Stage,
-  loading: boolean
-}
-
-const Navbar = ({stage, handleNext, loading}: NavbarProps) => {
-  const router = useRouter()
-  return <div className="h-16 grid grid-cols-2 items-center text-xl">
-    <button onClick={() => router.back()} className="flex items-center">
-      <LeftSVG/>
-      <span className="-translate-y-0.5">Zurück</span>
-    </button>
-    <button
-      onClick={handleNext}
-      className="flex justify-end items-center disabled:opacity-40"
-    >
-      {loading && <SpinnerSVG/>}
-      <span className="-translate-y-0.5">{stage == 'info' ? 'Speichern' : 'Weiter'}</span>
-      <RightSVG/>
-    </button>
-  </div>
-}
-
-
 
 const useAddBude = () => {
   const {map, markers} = useMap()
@@ -282,7 +285,6 @@ const useAddBude = () => {
     if (bude.data) {
       const position = {lat: bude.data.lat, lng: bude.data.lng}
       setMarker(editingBudeMarker(map, position))
-      setStage('info')
       map.setCenter(position)
       map.setZoom(19)
       prevMarker = markers.get(bude.data.id) ?? null
