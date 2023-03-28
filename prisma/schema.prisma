@@ -111,8 +111,8 @@ model Report {
   typeId      String
   userId      String
   budeId      String
-  contact     String?
-  description String?
+  contact     String?    @db.VarChar(100)
+  description String?    @db.VarChar(400)
   createdAt   DateTime   @default(now())
 
   type        ReportType @relation(fields: [typeId], references: [id], onDelete: Restrict)
