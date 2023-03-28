@@ -10,7 +10,7 @@ import {trpc, cacheControl, type RouterOutputs} from '@/utils/trpc'
 type Stage = 'position' | 'info'
 
 import {useBude} from '@/utils/bude'
-import {budeMarker} from '@/utils/marker'
+import {editingBudeMarker} from '@/utils/marker'
 
 import {contactValidator} from '@/utils/validators'
 import {toast} from 'react-hot-toast'
@@ -261,27 +261,31 @@ const Navbar = ({stage, handleNext, loading}: NavbarProps) => {
 
 
 const useAddBude = () => {
-  const {map} = useMap()
+  const {map, markers} = useMap()
   const [stage, setStage] = useState<Stage>('position')
   const [marker, setMarker] = useState<google.maps.Marker | null>(null)
   const bude = useBude()
 
   useEffect(() => {
+    let prevMarker: google.maps.Marker | null = null
     if (bude.data) {
       const position = {lat: bude.data.lat, lng: bude.data.lng}
-      setMarker(budeMarker(map, position))
+      setMarker(editingBudeMarker(map, position))
       setStage('info')
       map.setCenter(position)
       map.setZoom(19)
+      prevMarker = markers.get(bude.data.id) ?? null
+      prevMarker?.setVisible(false)
     }
 
     return () => {
+      prevMarker?.setVisible(true)
       setMarker(prev => {
         prev?.setMap(null)
         return null
       })
     }
-  }, [bude, map])
+  }, [bude.data, map, markers])
 
   const handleClick = useCallback(({latLng}: {latLng: google.maps.LatLng}) => {
     if (stage !== 'position')
@@ -290,7 +294,7 @@ const useAddBude = () => {
       marker.setPosition(latLng)
       return
     }
-    setMarker(budeMarker(map, latLng))
+    setMarker(editingBudeMarker(map, latLng))
   }, [map, marker, stage])
 
   useEffect(() => {

@@ -17,6 +17,7 @@ export interface MapContext {
   map: google.maps.Map,
   budes: Omit<AllBudes, 'data'> & {data: NonNullable<AllBudes['data']>},
   position: Position | null,
+  markers: Map<string, google.maps.Marker>,
   addListener: <K extends keyof MapContextEvents>(name: K, listener: MapContextEvents[K]) => void,
   removeListener: <K extends keyof MapContextEvents>(name: K, listener: MapContextEvents[K]) => void
 }
@@ -34,6 +35,7 @@ export const MapProvider = ({children}: {children: React.ReactNode}) => {
   const [position, setPosition] = useState<MapContext['position']>(null)
   const positionMarker = useRef<google.maps.Marker | null>(null)
   const budes = trpc.bude.all.useQuery()
+  const budeMarkers = useRef(new Map<string, google.maps.Marker>())
   const listeners = useRef<{
     [K in keyof MapContextEvents]: Set<MapContextEvents[K]>
   }>({select: new Set(), deselect: new Set()})
@@ -116,12 +118,15 @@ export const MapProvider = ({children}: {children: React.ReactNode}) => {
       return
     }
 
+    const bm = budeMarkers.current
+
     const markers = budes.data.map(bude => {
       const marker = budeMarker(map, {lat: bude.lat, lng: bude.lng}, bude.name)
+      bm.set(bude.id, marker)
       google.maps.event.addListener(marker, 'click', () => {
         listeners.current.select.forEach(listener => listener(bude))
       })
-      return marker
+      return bude.id
     })
   
     const listener = map.addListener('click', () => {
@@ -129,7 +134,11 @@ export const MapProvider = ({children}: {children: React.ReactNode}) => {
     })
   
     return () => {
-      markers.forEach(marker => marker.setMap(null))
+      markers.forEach(id => {
+        const marker = bm.get(id)
+        marker?.setMap(null)
+        bm.delete(id)
+      })
       google.maps.event.removeListener(listener)
     }
   }, [map, budes.data])
@@ -138,7 +147,14 @@ export const MapProvider = ({children}: {children: React.ReactNode}) => {
     <div ref={ref} className="col-start-1 row-start-1"/>
     <div className="relative isolate pointer-events-none flex flex-col-reverse col-start-1 row-start-1">
       <div className="info-container pointer-events-auto max-w-2xl bg-slate-800 w-full mx-auto overflow-auto">
-        {map && budes.data && <mapContext.Provider value={{map, budes, addListener, removeListener, position}}>
+        {map && budes.data && <mapContext.Provider value={{
+          map,
+          budes,
+          addListener,
+          removeListener,
+          position,
+          markers: budeMarkers.current}
+        }>
           {children}
         </mapContext.Provider>}
       </div>

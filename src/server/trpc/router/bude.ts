@@ -15,7 +15,8 @@ export const budeRouter = router({
       lat: bude.lat.toNumber(),
       lng: bude.lng.toNumber(),
       active: bude.active,
-      contact: bude.contact
+      contact: bude.contact,
+      id: bude.id
     }
   }),
   add: protectedProcedure.input(budeValidator).mutation(({ctx, input}) => {
