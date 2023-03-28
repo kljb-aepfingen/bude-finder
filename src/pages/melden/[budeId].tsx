@@ -3,7 +3,7 @@ import {useRouter} from 'next/router'
 import {useState, useCallback, useRef} from 'react'
 import {toast} from 'react-hot-toast'
 
-import BackToMap from '@/components/BackToMap'
+import Back from '@/components/Back'
 import {LeftSVG, RightSVG, SpinnerSVG} from '@/svg'
 import {trpc} from '@/utils/trpc'
 import type {RouterOutputs} from '@/utils/trpc'
@@ -109,14 +109,14 @@ const Melden: NextPage = () => {
       <div className="p-4 grid justify-center">
         <SpinnerSVG/>
       </div>
-      <BackToMap/>
+      <Back/>
     </>
   }
 
   if (!reportTypes.data.types) {
     return <>
       <div className="p-4 grid justify-center text-xl">Du hast diese Bude/Landjugend bereits gemeldet</div>
-      <BackToMap/>
+      <Back/>
     </>
   }
 
@@ -136,7 +136,7 @@ const Melden: NextPage = () => {
           </li>)}
         </ul>
       </div>
-      <BackToMap/>
+      <Back/>
     </>
   }
 
