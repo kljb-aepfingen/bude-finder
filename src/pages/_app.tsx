@@ -3,14 +3,15 @@ import { type Session } from "next-auth";
 import {SessionProvider} from "next-auth/react";
 import {Wrapper} from '@googlemaps/react-wrapper'
 
-import { trpc } from "../utils/trpc";
+import {trpc} from "@/utils/trpc";
 
 import "../styles/globals.css";
 
 import {env} from "@/env/client.mjs"
-import {mapContext} from '@/utils/map'
+import {MapProvider, type MapContextEvents, type MapContext} from '@/utils/map'
 import {useState, useCallback, useEffect, useRef} from 'react'
 import {BudeProvider} from '@/utils/bude'
+import {budeMarker} from '@/utils/marker'
 
 import {Toaster} from 'react-hot-toast'
 
@@ -24,8 +25,12 @@ const MyApp: AppType<{ session: Session | null }> = ({
   pageProps: { session, ...pageProps },
 }) => {
   const [map, setMap] = useState<google.maps.Map | null>(null)
-  const [position, setPosition] = useState<typeof defaultPosition | null>(null)
-  const livePosition = useRef<google.maps.Marker | null>(null)
+  const [position, setPosition] = useState<MapContext['position']>(null)
+  const positionMarker = useRef<google.maps.Marker | null>(null)
+  const budes = trpc.bude.all.useQuery()
+  const listeners = useRef<{
+    [K in keyof MapContextEvents]: Set<MapContextEvents[K]>
+  }>({select: new Set(), deselect: new Set()})
 
   const ref = useCallback((ref: HTMLDivElement | null) => {
     if (!ref)
@@ -42,6 +47,7 @@ const MyApp: AppType<{ session: Session | null }> = ({
         position: google.maps.ControlPosition.RIGHT_TOP
       },
       mapTypeControl: true,
+      mapTypeId: 'satellite',
       styles: [
         {
           featureType: 'poi',
@@ -52,24 +58,11 @@ const MyApp: AppType<{ session: Session | null }> = ({
     window
   }, [map])
 
-  useEffect(() => {
-    if (!map || !position) {
-      return
-    }
-    map.setCenter(position.latLng)
-    map.setZoom(position.zoom)
-  }, [map, position])
-
-  useEffect(() => {
-    navigator.geolocation.getCurrentPosition(({coords}) => {
-      setPosition({
-        latLng: {
-          lat: coords.latitude,
-          lng: coords.longitude
-        },
-        zoom: 13
-      })
-    })
+  const addListener = useCallback<MapContext['addListener']>((name, listener) => {
+    listeners.current[name].add(listener)
+  }, [])
+  const removeListener = useCallback<MapContext['removeListener']>((name, listener) => {
+    listeners.current[name].delete(listener)
   }, [])
 
   useEffect(() => {
@@ -77,29 +70,63 @@ const MyApp: AppType<{ session: Session | null }> = ({
       return
     }
 
+    navigator.geolocation.getCurrentPosition(({coords}) => {
+      setPosition({
+        latLng: {
+          lat: coords.latitude,
+          lng: coords.longitude
+        },
+        zoom: 17
+      })
+    })
+
     const watch = navigator.geolocation.watchPosition(({coords}) => {
       const position = {
         lat: coords.latitude,
         lng: coords.longitude
       }
-      if (livePosition.current) {
-        livePosition.current.setPosition(position)
+      if (positionMarker.current) {
+        positionMarker.current.setPosition(position)
         return
       }
-      livePosition.current = new google.maps.Marker({
+      console.log('create marker')
+      positionMarker.current = new google.maps.Marker({
         map,
-        position
+        position: position
       })
     })
 
     return () => {
       navigator.geolocation.clearWatch(watch)
-      if (livePosition.current) {
-        livePosition.current.setMap(null)
-        livePosition.current = null
+      if (positionMarker.current) {
+        positionMarker.current.setMap(null)
+        positionMarker.current = null
       }
     }
   }, [map])
+
+  useEffect(() => {
+    if (!budes.data || !map) {
+      return
+    }
+
+    const markers = budes.data.map(bude => {
+      const marker = budeMarker(map, {lat: bude.lat, lng: bude.lng}, bude.name)
+      google.maps.event.addListener(marker, 'click', () => {
+        listeners.current.select.forEach(listener => listener(bude))
+      })
+      return marker
+    })
+  
+    const listener = map.addListener('click', () => {
+      listeners.current.deselect.forEach(listener => listener())
+    })
+  
+    return () => {
+      markers.forEach(marker => marker.setMap(null))
+      google.maps.event.removeListener(listener)
+    }
+  }, [map, budes.data])
 
   return (
     <SessionProvider session={session}>
@@ -109,11 +136,11 @@ const MyApp: AppType<{ session: Session | null }> = ({
           <div ref={ref} className="col-start-1 row-start-1"/>
           <div className="relative isolate pointer-events-none flex flex-col-reverse col-start-1 row-start-1">
             <div className="info-container pointer-events-auto max-w-2xl bg-slate-800 w-full mx-auto overflow-auto">
-              {map && <mapContext.Provider value={{map}}>
+              {map && budes.data && <MapProvider value={{map, budes, addListener, removeListener, position}}>
                 <BudeProvider>
                   <Component {...pageProps} />
                 </BudeProvider>
-              </mapContext.Provider>}
+              </MapProvider>}
             </div>
           </div>
         </div>

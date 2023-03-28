@@ -11,3 +11,11 @@ export const budeValidator = z.object({
   lng: z.number(),
   contact: contactValidator
 })
+
+
+export const reportValidator = z.object({
+  typeId: z.string().cuid(),
+  budeId: z.string().cuid(),
+  description: z.string().optional(),
+  contact: contactValidator.optional()
+})

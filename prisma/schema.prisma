@@ -29,6 +29,7 @@ model Bude {
 
   user        User @relation(fields: [userId], references: [id], onDelete: Cascade)
   evaluations Evalutation[]
+  reports     Report[]
 }
 
 
@@ -85,6 +86,7 @@ model User {
   sessions      Session[]
   bude          Bude?
   evaluations   Evalutation[]
+  reports       Report[]
 }
 
 model VerificationToken {
@@ -93,4 +95,31 @@ model VerificationToken {
   expires    DateTime
 
   @@unique([identifier, token])
+}
+
+
+model ReportType {
+  id          String @id @default(cuid())
+  name        String
+  description Boolean
+  contact     Boolean
+
+  reports     Report[]
+}
+
+model Report {
+  typeId      String
+  userId      String
+  budeId      String
+  contact     String?
+  description String?
+
+  type        ReportType @relation(fields: [typeId], references: [id], onDelete: Restrict)
+  user        User       @relation(fields: [userId], references: [id], onDelete: Cascade)
+  bude        Bude       @relation(fields: [budeId], references: [id], onDelete: Cascade)
+
+  @@id([userId, budeId])
+  @@index([typeId])
+  @@index([userId])
+  @@index([budeId])
 }

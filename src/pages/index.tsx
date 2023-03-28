@@ -1,44 +1,68 @@
 import { type NextPage } from "next"
+import {useRouter} from 'next/router'
 import Head from "next/head"
 import {useEffect, useState, useCallback} from 'react'
 
-import {useMap} from '@/utils/map'
+import {useMap, type MapContextEvents} from '@/utils/map'
 import {cacheControl, trpc} from '@/utils/trpc'
-
-import {budeMarker} from '@/utils/marker'
 
 interface Info {
   id: string,
   name: string,
-  description: string
+  description: string,
+  lat: number,
+  lng: number
 }
 
 const Home: NextPage = () => {
-  const {map} = useMap()
-  const {data} = trpc.bude.all.useQuery()
-  const [info, setInfo] = useState<Info | null>(null)
+  const router = useRouter()
+  const {addListener, removeListener, budes, map, position} = useMap()
+  const [info, setInfo] = useState<{
+    bude: null | Parameters<MapContextEvents['select']>[0],
+    budeId: null | string
+  }>({bude: null, budeId: typeof router.query.budeId === 'string' ? router.query.budeId : null})
 
+  if (info.budeId && !info.bude) {
+    const bude = budes.data.find(({id}) => id === info.budeId)
+    if (bude) {
+      setInfo({bude, budeId: info.budeId})
+      map.setCenter(bude)
+      map.setZoom(19)
+    } else {
+      router.replace('/')
+      setInfo({bude: null, budeId: null})
+    }
+  }
+
+  if (position && !info.budeId) {
+    map.setCenter(position.latLng)
+    map.setZoom(position.zoom)
+  }
+  
   useEffect(() => {
-    if (!data)
-      return
-
-    const markers = data.map(({lat, lng, name, description, id}) => {
-      const marker = budeMarker(map, {lat, lng}, name)
-      google.maps.event.addListener(marker, 'click', () => {
-        setInfo({name, description, id})
-      })
-      return marker
-    })
-
-    const listener = map.addListener('click', () => {
-      setInfo(null)
-    })
+    const select: MapContextEvents['select'] = (bude) => {
+      router.replace(`/?budeId=${bude.id}`)
+      setInfo({bude, budeId: bude.id})
+      map.setCenter(bude)
+      const zoom = map.getZoom()
+      if (zoom === 19) {
+        map.setZoom(19.1)
+      } else {
+        map.setZoom(19)
+      }
+    }
+    const deselect: MapContextEvents['deselect'] = () => {
+      router.replace('/')
+      setInfo({bude: null, budeId: null})
+    }
+    addListener('select', select)
+    addListener('deselect', deselect)
 
     return () => {
-      markers.forEach(marker => marker.setMap(null))
-      google.maps.event.removeListener(listener)
+      removeListener('select', select)
+      removeListener('deselect', deselect)
     }
-  }, [data, map])
+  }, [addListener, removeListener, router, map])
 
   return <>
     <Head>
@@ -46,11 +70,12 @@ const Home: NextPage = () => {
     </Head>
     <Info/>
     <Account/>
-    {info &&
-      <div className="grid grid-cols-1 p-4 gap-4">
-        <h1 className="text-4xl flex flex-wrap">{info.name}</h1>
-        <div className="text-lg">{info.description}</div>
-        <Evaluation id={info.id}/>
+    {info.bude &&
+      <div className="grid grid-cols-[1fr_auto] p-4 gap-4">
+        <h1 className="text-4xl flex flex-wrap">{info.bude.name}</h1>
+        <Link href={`/melden/${info.bude.id}`} className="border border-slate-600 p-2 rounded-lg self-start">Melden</Link>
+        <div className="text-lg col-span-2">{info.bude.description}</div>
+        <Evaluation id={info.bude.id}/>
       </div>
     }
   </>
@@ -149,7 +174,7 @@ const Evaluation = ({id}: {id: string}) => {
   }
 
   if (session.status !== 'authenticated') {
-    return <div className="grid grid-cols-2 gap-2 h-12">
+    return <div className="grid grid-cols-2 col-span-2 gap-2 h-12">
       <div onClick={loginMessage} className={likeClassNames(false)}>
         {likes._count === 0 ? '' : formater.format(likes._count)}
         <ThumbUpSVG/>
@@ -161,7 +186,7 @@ const Evaluation = ({id}: {id: string}) => {
     </div>
   }
   
-  return <div className="grid grid-cols-2 gap-2 h-12">
+  return <div className="grid grid-cols-2 col-span-2 gap-2 h-12">
     <button
       disabled={disabled}
       onClick={handleClick(true)}

@@ -114,12 +114,13 @@ const AddBude: NextPage = () => {
       toast.error('Es fehlt die Kontaktinformation')
       return
     }
-    setError(error => ({...error, contact: false}))
-
+    
     if (!contactValidator.safeParse(contact).success) {
+      setError(error => ({...error, contact: true}))
       toast.error('Kontakt muss eine Email oder eine Nummer sein')
       return
     }
+    setError(error => ({...error, contact: false}))
 
     const position = marker.getPosition()
     if (!position) {
