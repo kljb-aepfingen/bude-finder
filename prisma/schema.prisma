@@ -16,18 +16,18 @@ datasource db {
 }
 
 model Bude {
-  id          String @id @default(cuid())
-  userId      String @unique
-  name        String
-  description String
+  id          String   @id @default(cuid())
+  userId      String   @unique
+  name        String   @db.VarChar(100)
+  description String   @db.VarChar(400)
   lat         Decimal
   lng         Decimal
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
-  active      Boolean @default(true)
-  contact     String
+  active      Boolean  @default(true)
+  contact     String   @db.VarChar(100)
 
-  user        User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
   evaluations Evalutation[]
   reports     Report[]
 }

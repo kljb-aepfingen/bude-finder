@@ -1,5 +1,5 @@
 import {type NextPage} from 'next'
-import {useEffect, useCallback, useState, useRef} from 'react'
+import {useEffect, useCallback, useState, useMemo} from 'react'
 import {useRouter} from 'next/router'
 import {useSession} from 'next-auth/react'
 
@@ -15,20 +15,32 @@ import {editingBudeMarker} from '@/utils/marker'
 import {contactValidator} from '@/utils/validators'
 import {toast} from 'react-hot-toast'
 
+const caps = {
+  name: 100,
+  description: 400,
+  contact: 100
+}
+
 const AddBude: NextPage = () => {
   const session = useSession()
   const router = useRouter()
 
   const {marker, stage, setStage} = useAddBude()
   const [name, setName] = useState('')
-  const nameRef = useRef<HTMLInputElement>(null)
   const [description, setDescription] = useState('')
-  const descriptionRef = useRef<HTMLTextAreaElement>(null)
   const [contact, setContact] = useState('')
-  const contactRef = useRef<HTMLInputElement>(null)
   const [error, setError] = useState({name: false, description: false, contact: false})
 
   const bude = useBude()
+
+  const handleChange = useCallback((setter: (value: string) => void, max: number) => (event: React.ChangeEvent<{value: string}>) => {
+    if (event.currentTarget.value.length <= max) {
+      setter(event.currentTarget.value)
+    }
+  }, [])
+  const handleNameChange = useMemo(() => handleChange(setName, caps.name), [handleChange])
+  const handleDescriptionChange = useMemo(() => handleChange(setDescription, caps.description), [handleChange])
+  const handleContactChange = useMemo(() => handleChange(setContact, caps.contact), [handleChange])
 
   useEffect(() => {
     if (bude.data) {
@@ -36,7 +48,7 @@ const AddBude: NextPage = () => {
       setDescription(bude.data.description)
       setContact(bude.data.contact)
     }
-  }, [bude])
+  }, [bude.data])
 
   const allBude = trpc.bude.all.useQuery()
   const options = {onSuccess: async (data: RouterOutputs['bude']['add']) => {
@@ -58,25 +70,6 @@ const AddBude: NextPage = () => {
       router.push('/')
   }, [session, router])
 
-  const setInfo = useCallback(() => {
-    if (!nameRef.current || !descriptionRef.current || !contactRef.current) {
-      return
-    }
-
-    const name = nameRef.current.value
-    setName(name)
-    const description = descriptionRef.current.value
-    setDescription(description)
-    const contact = contactRef.current.value
-    setContact(contact)
-
-    return {
-      name,
-      description,
-      contact
-    }
-  }, [])
-
   const handleNextPosition = useCallback(() => {
     if (!marker) {
       toast.error('Tippe auf die Stelle wo eure Bude / Landjugend ist')
@@ -87,13 +80,11 @@ const AddBude: NextPage = () => {
   }, [marker, setStage])
 
   const handleNextInfo = useCallback(() => {
-    const info = setInfo()
-    if (!info || !marker) {
+    if (!marker) {
       toast.error('Etwas ist schief gegangen')
       return
     }
 
-    const {name, description, contact} = info
     if (name === '') {
       setError(error => ({...error, name: true}))
       toast.error('Es fehlt ein Name')
@@ -139,7 +130,7 @@ const AddBude: NextPage = () => {
     }
 
     addBude.mutate(data)
-  }, [setInfo, marker, updateBude, addBude, bude.data])
+  }, [marker, updateBude, addBude, bude.data, name, description, contact])
 
   const handleNext = useCallback(() => {
     if (stage === 'position') {
@@ -155,11 +146,21 @@ const AddBude: NextPage = () => {
 
   const back = useCallback(() => {
     setStage('position')
-    setInfo()
-  }, [setStage, setInfo])
+  }, [setStage])
 
   return <>
-    <Info {...{stage, back, setStage, name, nameRef, description, descriptionRef, contact, contactRef, error}}/>
+    <Info {...{
+      stage,
+      back,
+      setStage,
+      name,
+      handleNameChange,
+      description,
+      handleDescriptionChange,
+      contact,
+      handleContactChange,
+      error
+    }}/>
     <Navbar stage={stage} loading={addBude.isLoading || updateBude.isLoading} handleNext={handleNext}/>
   </>
 }
@@ -171,11 +172,11 @@ interface InfoProps {
   stage: Stage,
   back: () => void,
   name: string,
-  nameRef: React.RefObject<HTMLInputElement>,
+  handleNameChange: React.ChangeEventHandler<{value: string}>
   description: string,
-  descriptionRef: React.RefObject<HTMLTextAreaElement>,
+  handleDescriptionChange: React.ChangeEventHandler<{value: string}>
   contact: string,
-  contactRef: React.RefObject<HTMLInputElement>,
+  handleContactChange: React.ChangeEventHandler<{value: string}>
   error: {name: boolean, description: boolean, contact: boolean}
 }
 
@@ -183,13 +184,14 @@ const Info = ({
   back,
   stage,
   name,
-  nameRef,
+  handleNameChange,
   description,
-  descriptionRef,
+  handleDescriptionChange,
   contact,
-  contactRef,
+  handleContactChange,
   error
 }: InfoProps) => {
+
   if (stage == 'position') {
     return <div className="text-xl p-4">
       Klicke auf die Karte
@@ -201,34 +203,43 @@ const Info = ({
       <DownSVG/>
     </button>
     <div className="grid grid-cols-1 p-4">
-      <label htmlFor="name">Name der Bude/Landjugend</label>
+      <label htmlFor="name" className="flex gap-1 items-center">
+        Name der Bude/Landjugend
+        <span className="text-sm opacity-70">({name.length}/{caps.name})</span>
+      </label>
       <input
         type="text"
         name="name"
         id="name"
-        defaultValue={name}
+        value={name}
         className={`${error.name && 'border-red-600'}`}
-        ref={nameRef}
+        onChange={handleNameChange}
       />
       <div className="p-1"/>
-      <label htmlFor="description">Beschreibt euch ein wenig</label>
+      <label htmlFor="description" className="flex gap-1 items-center">
+        Beschreibt euch ein wenig
+        <span className="text-sm opacity-70">({description.length}/{caps.description})</span>
+      </label>
       <textarea
         name="description"
         rows={6}
         id="description"
-        defaultValue={description}
+        value={description}
         className={`${error.description && 'border-red-600'}`}
-        ref={descriptionRef}
+        onChange={handleDescriptionChange}
       ></textarea>
       <div className="p-1"/>
-      <label htmlFor="contact">Kontakt (Email oder Nummer)</label>
+      <label htmlFor="contact" className="flex gap-1 items-center">
+        Kontakt (Email oder Nummer)
+        <span className="text-sm opacity-70">({contact.length}/{caps.contact})</span>
+      </label>
       <input
         type="text"
         name="contact"
         id="contact"
-        defaultValue={contact}
+        value={contact}
         className={`${error.contact && 'border-red-600'}`}
-        ref={contactRef}
+        onChange={handleContactChange}
       />
     </div>
   </div>
