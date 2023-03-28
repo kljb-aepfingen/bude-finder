@@ -1,3 +1,4 @@
+import z from 'zod'
 import {protectedProcedure, router} from '../trpc'
 import {reportValidator} from '@/utils/validators'
 import {TRPCError} from '@trpc/server'
@@ -44,5 +45,17 @@ export const reportRouter = router({
     }
 
     return ctx.prisma.report.create({data})
+  }),
+  delete: protectedProcedure.input(z.object({
+    budeId: z.string().cuid()
+  })).mutation(({ctx, input}) => {
+    return ctx.prisma.report.delete({
+      where: {
+        userId_budeId: {
+          budeId: input.budeId,
+          userId: ctx.session.user.id
+        }
+      }
+    })
   })
 })

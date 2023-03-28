@@ -25,8 +25,14 @@ type ReportType = NonNullable<RouterOutputs['report']['types']['types']>[number]
 const Melden: NextPage = () => {
   useProtected()
   const router = useRouter()
-  useFindBude(router)
+  const budeId = useFindBude(router)
   const reportTypes = trpc.report.types.useQuery()
+  const deleteReport = trpc.report.delete.useMutation({onSuccess: () => {
+    reportTypes.refetch()
+  }, onError: () => {
+    toast.error('Etwas ist schief gegangen')
+  }})
+
   const {
     handleSave,
     reportType,
@@ -64,6 +70,8 @@ const Melden: NextPage = () => {
       contact={contact}
       handleContactChange={handleContactChange}
       error={error}
+      budeId={budeId}
+      deleteReport={deleteReport}
     />
     <Navbar handleBack={handleBack} handleSave={handleSave} showSave={!!reportType} isLoading={isLoading} />
   </>
@@ -138,17 +146,22 @@ const useFindBude = (router: NextRouter) => {
   const {budeId} = router.query
   if (typeof budeId !== 'string') {
     router.replace('/')
-  } else {
-    const bude = budes.data.find(({id}) => id === budeId)
-    if (bude) {
-      map.setCenter(bude)
-      map.setZoom(19)
-    } else {
-      router.replace('/')
-    }
+    return ''
   }
+  const bude = budes.data.find(({id}) => id === budeId)
+  if (!bude) {
+    router.replace('/')
+    return ''
+  }
+  map.setCenter(bude)
+  map.setZoom(19)
+  return budeId
 }
 
+import type {UseTRPCMutationResult} from '@trpc/react-query/shared'
+import type {inferRouterOutputs, inferRouterInputs} from '@trpc/server'
+import type {TRPCClientErrorLike} from '@trpc/react-query'
+import type {AppRouter} from '@/server/trpc/router/_app'
 
 type InfoProps = {
   reportTypes: RouterOutputs['report']['types'] | undefined,
@@ -158,7 +171,14 @@ type InfoProps = {
   handleDescriptionChange: React.ChangeEventHandler<{value: string}>,
   contact: string,
   handleContactChange: React.ChangeEventHandler<{value: string}>,
-  error: Error
+  error: Error,
+  budeId: string,
+  deleteReport: UseTRPCMutationResult<
+    inferRouterOutputs<AppRouter>['report']['delete'],
+    TRPCClientErrorLike<AppRouter>,
+    inferRouterInputs<AppRouter>['report']['delete'],
+    unknown
+  >
 }
 const Info = ({
   reportTypes,
@@ -168,16 +188,21 @@ const Info = ({
   handleDescriptionChange,
   contact,
   handleContactChange,
-  error
+  error,
+  budeId,
+  deleteReport
 }: InfoProps) => {
-  if (!reportTypes) {
+  if (!reportTypes || deleteReport.isLoading) {
     return <div className="p-4 grid justify-center">
       <SpinnerSVG/>
     </div>
   }
 
   if (!reportTypes.types) {
-    return <div className="p-4 grid justify-center text-xl">Du hast diese Bude/Landjugend bereits gemeldet</div>
+    return <div className="grid grid-cols-[1fr_auto] p-4 gap-4">
+      <div className="text-xl self-center justify-self-center">Du hast diese Bude/Landjugend bereits gemeldet</div>
+      <button onClick={() => deleteReport.mutate({budeId})} className="border border-slate-600 p-2 rounded-lg self-start">Löschen</button>
+    </div>
   }
 
   if (reportType === null) {
