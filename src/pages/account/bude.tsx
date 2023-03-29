@@ -60,7 +60,7 @@ const AddBude: NextPage = () => {
   const handleNext = useCallback(() => {
     if (stage === 'position') {
       if (!marker) {
-        toast.error('Tippe auf die Stelle wo eure Bude / Landjugend ist')
+        toast.error('Tippe auf die Stelle wo eure Bude/Landjugend ist')
         return
       }
       setStage('info')
@@ -212,6 +212,8 @@ const useSave = (
     ])
     cacheControl.noCache = false
     router.push(`/?budeId=${data.id}`)
+  }, onError: () => {
+    toast.error('Bude/Landjugend konnte nicht gespeichert werden')
   }}
   const addBude = trpc.bude.add.useMutation(options)
   const updateBude = trpc.bude.update.useMutation(options)

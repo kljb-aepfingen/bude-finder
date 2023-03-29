@@ -3,6 +3,7 @@ import {useRouter} from 'next/router'
 import {signOut, useSession} from 'next-auth/react'
 import {useCallback, useEffect} from 'react'
 import Link from 'next/link'
+import {toast} from 'react-hot-toast'
 
 import {cacheControl, trpc} from '@/utils/trpc'
 import {useBude} from '@/utils/bude'
@@ -55,6 +56,8 @@ const Bude = () => {
         budes.refetch()
       ])
       cacheControl.noCache = false
+    }, onError: () => {
+      toast.error('Bude/Landjugend konnte nicht gelöscht werden')
     }
   })
 

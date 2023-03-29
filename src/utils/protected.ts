@@ -9,7 +9,7 @@ export const useProtected = () => {
 
   useEffect(() => {
     if (session.status !== 'loading' && session.status !== 'authenticated') {
-      toast.error('Du musst angemeldet sein um diesen Inhalt zu sehen')
+      toast.error('Du musst angemeldet sein um diesen Inhalt sehen zu können')
       router.push('/')
     }
   }, [session.status, router])

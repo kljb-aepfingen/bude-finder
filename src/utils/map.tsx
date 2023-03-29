@@ -1,4 +1,5 @@
 import {createContext, useContext, useState, useCallback, useRef, useEffect} from 'react'
+import {toast} from 'react-hot-toast'
 
 import {trpc, type RouterOutputs, type RouterHookReturnTypes} from '@/utils/trpc'
 import {budeMarker} from '@/utils/marker'
@@ -31,7 +32,9 @@ export const MapProvider = ({children}: {children: React.ReactNode}) => {
   const [map, setMap] = useState<google.maps.Map | null>(null)
   const [position, setPosition] = useState<MapContext['position']>(null)
   const positionMarker = useRef<google.maps.Marker | null>(null)
-  const budes = trpc.bude.all.useQuery()
+  const budes = trpc.bude.all.useQuery(undefined, {onError: () => {
+    toast.error('Buden/Landjugenden konnten nicht geladen werden')
+  }})
   const budeMarkers = useRef(new Map<string, google.maps.Marker>())
   const listeners = useRef<{
     [K in keyof MapContextEvents]: Set<MapContextEvents[K]>

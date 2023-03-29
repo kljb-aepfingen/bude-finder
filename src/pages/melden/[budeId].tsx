@@ -26,11 +26,13 @@ const Melden: NextPage = () => {
   useProtected()
   const router = useRouter()
   const budeId = useFindBude(router)
-  const reportTypes = trpc.report.types.useQuery()
+  const reportTypes = trpc.report.types.useQuery(undefined, {onError: () => {
+    toast.error('Melde Arten konnten nicht geladen werden')
+  }})
   const deleteReport = trpc.report.delete.useMutation({onSuccess: () => {
     reportTypes.refetch()
   }, onError: () => {
-    toast.error('Etwas ist schief gegangen')
+    toast.error('Meldung konnte nicht gelöscht werden')
   }})
 
   const {
@@ -90,7 +92,7 @@ const useSave = (
     router.push(`/?budeId=${router.query.budeId}`)
     reportTypes.refetch()
   }, onError: () => {
-    toast.error('Etwas ist schief gegangen')
+    toast.error('Meldung konnte nicht gespeichert werden')
     router.push(`/?budeId=${router.query.budeId}`)
   }})
 

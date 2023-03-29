@@ -122,12 +122,16 @@ const likeClassNames = (selected: boolean) => {
 }
 
 const Evaluation = ({id}: {id: string}) => {
-  const evaluation = trpc.eval.get.useQuery({id})
+  const evaluation = trpc.eval.get.useQuery({id}, {onError: () => {
+    toast.error('Bewertungen konnten nicht geladen werden')
+  }})
   const options = {onSuccess: async () => {
     cacheControl.noCache = true
     await evaluation.refetch()
     cacheControl.noCache = false
     setSpinner(null)
+  }, onError: () => {
+    toast.error('Bewertung konnte nicht gespeichert werden')
   }}
   const setEvaluation = trpc.eval.set.useMutation(options)
   const updateEvaluation = trpc.eval.update.useMutation(options)
@@ -157,9 +161,9 @@ const Evaluation = ({id}: {id: string}) => {
     id
   ])
 
-  const loginMessage = useCallback(() => {
+  const loginMessage = () => {
     toast.error('Du musst angemeldet sein um eine Bewertungen abgeben zu können')
-  }, [])
+  }
 
   const {dislikes, likes, own} = evaluation.data ?? {dislikes: {_count: 0}, likes: {_count: 0}, own: null}
   const disabled =
