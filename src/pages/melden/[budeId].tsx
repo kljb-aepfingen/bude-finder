@@ -44,7 +44,7 @@ const Melden: NextPage = () => {
     error,
     setError,
     isLoading
-  } = useSave(router)
+  } = useSave(router, reportTypes)
 
 
   const handleChange = useCallback((setter: (value: string) => void, max: number) => (event: React.ChangeEvent<{value: string}>) => {
@@ -79,6 +79,7 @@ const Melden: NextPage = () => {
 
 const useSave = (
   router: NextRouter,
+  reportTypes: RouterHookReturnTypes['report']['types']
 ) => {
   const [reportType, setReportType] = useState<null | ReportType>(null)
   const [description, setDescription] = useState('')
@@ -87,6 +88,7 @@ const useSave = (
   
   const addReport = trpc.report.add.useMutation({onSuccess: () => {
     router.push(`/?budeId=${router.query.budeId}`)
+    reportTypes.refetch()
   }, onError: () => {
     toast.error('Etwas ist schief gegangen')
     router.push(`/?budeId=${router.query.budeId}`)
