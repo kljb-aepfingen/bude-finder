@@ -6,7 +6,7 @@ import {toast} from 'react-hot-toast'
 import Back from '@/components/Back'
 import {LeftSVG, RightSVG, SpinnerSVG} from '@/svg'
 import {trpc} from '@/utils/trpc'
-import type {RouterOutputs} from '@/utils/trpc'
+import type {RouterOutputs, RouterHookReturnTypes} from '@/utils/trpc'
 import {useMap} from '@/utils/map'
 import {useProtected} from '@/utils/protected'
 
@@ -158,11 +158,6 @@ const useFindBude = (router: NextRouter) => {
   return budeId
 }
 
-import type {UseTRPCMutationResult} from '@trpc/react-query/shared'
-import type {inferRouterOutputs, inferRouterInputs} from '@trpc/server'
-import type {TRPCClientErrorLike} from '@trpc/react-query'
-import type {AppRouter} from '@/server/trpc/router/_app'
-
 type InfoProps = {
   reportTypes: RouterOutputs['report']['types'] | undefined,
   reportType: ReportType | null,
@@ -173,12 +168,7 @@ type InfoProps = {
   handleContactChange: React.ChangeEventHandler<{value: string}>,
   error: Error,
   budeId: string,
-  deleteReport: UseTRPCMutationResult<
-    inferRouterOutputs<AppRouter>['report']['delete'],
-    TRPCClientErrorLike<AppRouter>,
-    inferRouterInputs<AppRouter>['report']['delete'],
-    unknown
-  >
+  deleteReport: RouterHookReturnTypes['report']['delete']
 }
 const Info = ({
   reportTypes,

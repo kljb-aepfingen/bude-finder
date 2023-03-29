@@ -1,12 +1,7 @@
 import {createContext, useContext} from 'react'
-import {trpc} from '@/utils/trpc'
+import {trpc, type RouterHookReturnTypes} from '@/utils/trpc'
 
-import {type UseTRPCQueryResult} from '@trpc/react-query/shared'
-import {type inferRouterOutputs} from '@trpc/server'
-import {type TRPCClientErrorLike} from '@trpc/react-query'
-import {type AppRouter} from '@/server/trpc/router/_app'
-
-type BudeContext = UseTRPCQueryResult<inferRouterOutputs<AppRouter>['bude']['own'], TRPCClientErrorLike<AppRouter>>
+type BudeContext = RouterHookReturnTypes['bude']['own']
 
 const budeContext = createContext<BudeContext>(null as unknown as BudeContext)
 export const useBude = () => useContext(budeContext)

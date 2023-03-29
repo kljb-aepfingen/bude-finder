@@ -1,13 +1,10 @@
 import {createContext, useContext, useState, useCallback, useRef, useEffect} from 'react'
 
-import type {UseTRPCQueryResult} from '@trpc/react-query/shared'
-import type {TRPCClientErrorLike} from '@trpc/react-query'
-import type {AppRouter} from '@/server/trpc/router/_app'
-import {trpc, type RouterOutputs} from '@/utils/trpc'
+import {trpc, type RouterOutputs, type RouterHookReturnTypes} from '@/utils/trpc'
 import {budeMarker} from '@/utils/marker'
 
 type Bude = RouterOutputs['bude']['all']
-type AllBudes = UseTRPCQueryResult<Bude, TRPCClientErrorLike<AppRouter>>
+type Budes = RouterHookReturnTypes['bude']['all']
 type Position = {
   latLng: {lat: number, lng: number},
   zoom: number
@@ -15,7 +12,7 @@ type Position = {
 
 export interface MapContext {
   map: google.maps.Map,
-  budes: Omit<AllBudes, 'data'> & {data: NonNullable<AllBudes['data']>},
+  budes: Omit<Budes, 'data'> & {data: NonNullable<Budes['data']>},
   position: Position | null,
   markers: Map<string, google.maps.Marker>,
   addListener: <K extends keyof MapContextEvents>(name: K, listener: MapContextEvents[K]) => void,
