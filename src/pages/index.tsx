@@ -95,7 +95,7 @@ import {toast} from 'react-hot-toast'
 
 import {AccountSVG, SignUpSVG, InfoSVG, SpinnerSVG, ThumbDownSVG, ThumbUpSVG} from '@/svg'
 
-const classNames = "h-16 w-16 rounded-full ml-auto fixed -z-10 bottom-4 bg-slate-800"
+const classNames = "h-16 w-16 rounded-full ml-auto fixed -z-10 bottom-6 bg-slate-800"
 
 const Account = () => {
   const {status} = useSession()
