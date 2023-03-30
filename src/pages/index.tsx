@@ -99,7 +99,7 @@ import {toast} from 'react-hot-toast'
 
 import {SpinnerSVG, ThumbDownSVG, ThumbUpSVG} from '@/svg'
 
-const classNames = "ml-auto absolute bottom-6 rounded-lg text-xl bg-slate-800 border border-slate-600 border-2 px-4 py-2"
+const classNames = "ml-auto absolute bottom-6 rounded-lg text-xl bg-slate-800 shadow-2xl px-4 py-2"
 
 const Account = () => {
   const {status} = useSession()
