@@ -27,6 +27,13 @@ const Info: NextPage = () => {
           </p>
         </li>
         <li>
+          <h2 id="feedback">Feedback</h2>
+          <p>
+            Wenn ihr irgendwelche Fehler in unserer App entdeckt, egal ob Schreibfehler oder nicht funktionierende Funktionen,
+            meldet euch gerne bei uns. Unsere Kontaktdaten findet ihr im Impressum.
+          </p>
+        </li>
+        <li>
           <h2 id="daten">Eure Daten</h2>
           <p>Welche Daten speichern wir und welche nicht:</p>
           <ol className="counter-alph">
