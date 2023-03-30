@@ -1,5 +1,6 @@
 import { type NextPage } from "next"
 import {useRouter} from 'next/router'
+import {signIn, useSession} from 'next-auth/react'
 import Head from "next/head"
 import {useEffect, useState, useCallback, useRef} from 'react'
 
@@ -15,6 +16,7 @@ interface Info {
 }
 
 const Home: NextPage = () => {
+  const session = useSession()
   const router = useRouter()
   const {addListener, removeListener, budes, map, position} = useMap()
   const firstPosition = useRef(position)
@@ -76,7 +78,8 @@ const Home: NextPage = () => {
     {info.bude &&
       <div className="grid grid-cols-[1fr_auto] p-4 gap-4">
         <h1 className="text-4xl flex flex-wrap">{info.bude.name}</h1>
-        <Link href={`/melden/${info.bude.id}`} className="border border-slate-600 p-2 rounded-lg self-start">Melden</Link>
+        {session.status === 'authenticated' &&
+          <Link href={`/melden/${info.bude.id}`} className="border border-slate-600 p-2 rounded-lg self-start">Melden</Link>}
         <div className="text-lg col-span-2">{info.bude.description}</div>
         <Evaluation id={info.bude.id}/>
       </div>
@@ -88,7 +91,6 @@ export default Home
 
 
 import Link from 'next/link'
-import {signIn, useSession} from 'next-auth/react'
 import {toast} from 'react-hot-toast'
 
 import {AccountSVG, SignUpSVG, InfoSVG, SpinnerSVG, ThumbDownSVG, ThumbUpSVG} from '@/svg'
