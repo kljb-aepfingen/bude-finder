@@ -1,4 +1,5 @@
 import type {NextPage} from 'next'
+import Link from 'next/link'
 import {useRouter, type NextRouter} from 'next/router'
 import {useState, useCallback, useMemo} from 'react'
 import {toast} from 'react-hot-toast'
@@ -203,6 +204,11 @@ const Info = ({
     return <div className="p-4">
       <h1 className="text-4xl">Melden</h1>
       <div className="h-px bg-slate-600 my-4"/>
+      <div>
+        Wenn du jemand meldest passiert dies <b>nicht</b> anonym. Die gemeldete Bude/Landjugend kann allerdings nicht
+        sehen von wem sie gemeldet wurde. Lediglich unser Admin sieht wer du bist, zuminderst sieht er dein Google Name.
+        Mehr information dazu findest du <Link href="/info#daten-meldung" className="underline text-sky-400">hier</Link>.
+      </div>
       <div>Wähle einen Grund</div>
       <div className="p-1"/>
       <ul className="grid grid-cols-1 gap-1">
