@@ -1,6 +1,6 @@
 import type {NextPage} from 'next'
 import Link from 'next/link'
-import {useRouter, type NextRouter} from 'next/router'
+import {useRouter, type RouterContext} from '@/utils/router'
 import {useState, useCallback, useMemo} from 'react'
 import {toast} from 'react-hot-toast'
 
@@ -81,7 +81,7 @@ const Melden: NextPage = () => {
 }
 
 const useSave = (
-  router: NextRouter,
+  router: RouterContext,
   reportTypes: RouterHookReturnTypes['report']['types']
 ) => {
   const [reportType, setReportType] = useState<null | ReportType>(null)
@@ -145,7 +145,7 @@ const useSave = (
     isLoading: addReport.isLoading
   }
 }
-const useFindBude = (router: NextRouter) => {
+const useFindBude = (router: RouterContext) => {
   const {budes, map} = useMap()
 
   const {budeId} = router.query

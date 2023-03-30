@@ -1,5 +1,5 @@
 import { type NextPage } from "next"
-import {useRouter} from 'next/router'
+import {useRouter} from '@/utils/router'
 import {signIn, useSession} from 'next-auth/react'
 import Head from "next/head"
 import {useEffect, useState, useCallback, useRef} from 'react'

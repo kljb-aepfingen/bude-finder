@@ -1,11 +1,11 @@
 import {type NextPage} from 'next'
 import {useEffect, useCallback, useState, useMemo} from 'react'
-import {useRouter} from 'next/router'
 
 import {useMap} from '@/utils/map'
 import {LeftSVG, RightSVG, SpinnerSVG} from '@/svg'
 import {trpc, cacheControl, type RouterOutputs} from '@/utils/trpc'
 import {useProtected} from '@/utils/protected'
+import {useRouter} from '@/utils/router'
 
 type Stage = 'position' | 'info'
 
@@ -70,10 +70,10 @@ const AddBude: NextPage = () => {
   }, [marker, save, stage, setStage])
 
   const handleBack = useCallback(() => {
-    if (stage === 'position') {
-      router.back()
-    } else {
+    if (stage === 'info') {
       setStage('position')
+    } else {
+      router.back()
     }
   }, [stage, setStage, router])
 

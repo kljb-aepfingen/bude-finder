@@ -10,6 +10,7 @@ import "../styles/globals.css";
 import {env} from "@/env/client.mjs"
 import {MapProvider} from '@/utils/map'
 import {BudeProvider} from '@/utils/bude'
+import {RouterProvider} from '@/utils/router'
 
 import {Toaster} from 'react-hot-toast'
 
@@ -23,7 +24,9 @@ const MyApp: AppType<{ session: Session | null }> = ({
         <Toaster position="top-center"/>
         <MapProvider>
           <BudeProvider>
-            <Component {...pageProps} />
+            <RouterProvider>
+              <Component {...pageProps} />
+            </RouterProvider>
           </BudeProvider>
         </MapProvider>
       </Wrapper>
