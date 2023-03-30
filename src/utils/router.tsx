@@ -16,7 +16,7 @@ export const RouterProvider = ({children}: {children: React.ReactNode}) => {
   const history = useRef([router.asPath])
 
   const back = () => {
-    if (history.current.at(-2)) {
+    if (history.current.length >= 2) {
       router.back()
     } else {
       router.push('/')
@@ -31,8 +31,13 @@ export const RouterProvider = ({children}: {children: React.ReactNode}) => {
 
   useEffect(() => {
     const handleRouteChange = (url: string) => {
-      console.log('Route Change')
-      history.current.push(url)
+      const previous = history.current.at(-2)
+      if (previous === url) {
+        history.current.splice(-1, 1)
+      } else {
+        history.current.push(url)
+      }
+      console.log(history.current)
     }
     router.events.on('routeChangeStart', handleRouteChange)
     return () => {
