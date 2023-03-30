@@ -182,6 +182,12 @@ const Evaluation = ({id}: {id: string}) => {
       })
   }
 
+  if (evaluation.isLoading) {
+    return <div className="grid h-12 col-span-2 place-items-center">
+      <SpinnerSVG/>
+    </div>
+  }
+
   if (session.status !== 'authenticated') {
     return <div className="grid grid-cols-2 col-span-2 gap-2 h-12">
       <div onClick={loginMessage} className={likeClassNames(false)}>
