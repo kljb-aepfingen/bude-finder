@@ -73,10 +73,14 @@ const Home: NextPage = () => {
     <Head>
       <title>Bude Finder</title>
     </Head>
-    <Info/>
-    <Account/>
+    <div className="fixed bottom-0 left-0 right-0 -z-10">
+      <div className="max-w-2xl w-full mx-auto relative">
+        <Info/>
+        <Account/>
+      </div>
+    </div>
     {info.bude &&
-      <div className="grid grid-cols-[1fr_auto] p-4 gap-4">
+      <div className="col-start-1 row-start-1 grid grid-cols-[1fr_auto] p-4 gap-4">
         <h1 className="text-4xl flex flex-wrap">{info.bude.name}</h1>
         {session.status === 'authenticated' &&
           <Link href={`/melden/${info.bude.id}`} className="border border-slate-600 p-2 rounded-lg self-start">Melden</Link>}
@@ -93,21 +97,21 @@ export default Home
 import Link from 'next/link'
 import {toast} from 'react-hot-toast'
 
-import {AccountSVG, SignUpSVG, InfoSVG, SpinnerSVG, ThumbDownSVG, ThumbUpSVG} from '@/svg'
+import {SpinnerSVG, ThumbDownSVG, ThumbUpSVG} from '@/svg'
 
-const classNames = "h-16 w-16 rounded-full ml-auto fixed -z-10 bottom-6 bg-slate-800"
+const classNames = "ml-auto absolute bottom-6 rounded-lg text-xl bg-slate-800 border border-slate-600 border-2 px-4 py-2"
 
 const Account = () => {
   const {status} = useSession()
 
   if (status === 'authenticated') {
-    return <Link href="/account" className={`${classNames} right-4 p-2`}>
-      <AccountSVG/>
+    return <Link href="/account" className={`${classNames} right-4`}>
+      Account
     </Link>
   }
 
-  return <button onClick={() => signIn('google')} className={`${classNames} right-4 p-3`}>
-    <SignUpSVG/>
+  return <button onClick={() => signIn('google')} className={`${classNames} right-4`}>
+    Anmelden
   </button>
 }
 
@@ -225,7 +229,7 @@ const Evaluation = ({id}: {id: string}) => {
 
 
 const Info = () => {
-  return <Link href="/info" className={`${classNames} left-4 p-3`}>
-    <InfoSVG/>
+  return <Link href="/info" className={`${classNames} left-4`}>
+    Infos
   </Link>
 }
