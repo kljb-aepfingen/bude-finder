@@ -35,7 +35,7 @@ const Imprint: NextPage = () => {
         <p>Wir sind weder bereit noch verpflichtet, an einem Streitbeilegungsverfahren vor einer Verbraucherschlichtungsstelle teilzunehmen.</p>
       </div>
     </main>
-    <Back/>
+    <Back fallback="/info"/>
   </div>
 }
 export default Imprint

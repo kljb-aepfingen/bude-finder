@@ -604,7 +604,7 @@ const Imprint: NextPage = () => {
         Rechtsanwalt <a href="https://www.wbs.legal/" className="underline text-sky-400" rel="nofollow">Christian Solmecke</a> erstellt und publiziert.
       </p>
     </main>
-    <Back/>
+    <Back fallback="/info"/>
   </div>
 }
 export default Imprint

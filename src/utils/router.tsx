@@ -3,7 +3,7 @@ import {useRouter as useRouterNext} from 'next/router'
 import type {ParsedUrlQuery} from 'querystring'
 
 export type RouterContext = {
-  back: () => void,
+  back: (fallback?: string) => void,
   push: (url: string) => void,
   replace: (url: string) => void,
   query: ParsedUrlQuery
@@ -15,11 +15,14 @@ export const RouterProvider = ({children}: {children: React.ReactNode}) => {
   const router = useRouterNext()
   const history = useRef([router.asPath])
 
-  const back = () => {
+  const back = (fallback?: string) => {
     if (history.current.length >= 2) {
       router.back()
     } else {
-      router.push('/')
+      if (fallback) {
+        history.current = []
+      }
+      router.push(fallback ?? '/')
     }
   }
   const push = (url: string) => {

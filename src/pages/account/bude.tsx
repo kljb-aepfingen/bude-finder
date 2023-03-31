@@ -73,7 +73,7 @@ const AddBude: NextPage = () => {
     if (stage === 'info') {
       setStage('position')
     } else {
-      router.back()
+      router.back('/account')
     }
   }, [stage, setStage, router])
 
