@@ -7,6 +7,10 @@ import {useEffect, useState, useCallback, useRef} from 'react'
 import {useMap, type MapContextEvents} from '@/utils/map'
 import {cacheControl, trpc} from '@/utils/trpc'
 
+const notAuthenticated = () => {
+  toast.error('Du musst angemeldet sein um eine Bewertungen abgeben zu können')
+}
+
 interface Info {
   id: string,
   name: string,
@@ -84,6 +88,8 @@ const Home: NextPage = () => {
         <h1 className="text-4xl flex flex-wrap">{info.bude.name}</h1>
         {session.status === 'authenticated' &&
           <Link href={`/melden/${info.bude.id}`} className="border border-slate-600 p-2 rounded-lg self-start">Melden</Link>}
+        {session.status !== 'authenticated' &&
+          <button onClick={notAuthenticated} className="border border-slate-600 p-2 rounded-lg self-start">Melden</button>}
         <div className="text-lg col-span-2">{info.bude.description}</div>
         <Evaluation id={info.bude.id}/>
       </div>
@@ -167,10 +173,6 @@ const Evaluation = ({id}: {id: string}) => {
     id
   ])
 
-  const loginMessage = () => {
-    toast.error('Du musst angemeldet sein um eine Bewertungen abgeben zu können')
-  }
-
   const {dislikes, likes, own} = evaluation.data ?? {dislikes: {_count: 0}, likes: {_count: 0}, own: null}
   const disabled =
     evaluation.isLoading ||
@@ -194,11 +196,11 @@ const Evaluation = ({id}: {id: string}) => {
 
   if (session.status !== 'authenticated') {
     return <div className="grid grid-cols-2 col-span-2 gap-2 h-12">
-      <div onClick={loginMessage} className={likeClassNames(false)}>
+      <div onClick={notAuthenticated} className={likeClassNames(false)}>
         {likes._count === 0 ? '' : formater.format(likes._count)}
         <ThumbUpSVG/>
       </div>
-      <div onClick={loginMessage} className={likeClassNames(false)}>
+      <div onClick={notAuthenticated} className={likeClassNames(false)}>
         {dislikes._count === 0 ? '' : formater.format(dislikes._count)}
         <ThumbDownSVG/>
       </div>
