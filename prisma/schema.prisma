@@ -87,6 +87,7 @@ model User {
   bude          Bude?
   evaluations   Evalutation[]
   reports       Report[]
+  admin         Admin?
 }
 
 model VerificationToken {
@@ -111,16 +112,30 @@ model Report {
   typeId      String
   userId      String
   budeId      String
-  contact     String?    @db.VarChar(100)
-  description String?    @db.VarChar(400)
-  createdAt   DateTime   @default(now())
+  contact     String?      @db.VarChar(100)
+  description String?      @db.VarChar(400)
+  state       ReportStatus @default(UNREAD)
+  createdAt   DateTime     @default(now())
 
-  type        ReportType @relation(fields: [typeId], references: [id], onDelete: Restrict)
-  user        User       @relation(fields: [userId], references: [id], onDelete: Cascade)
-  bude        Bude       @relation(fields: [budeId], references: [id], onDelete: Cascade)
+  type        ReportType   @relation(fields: [typeId], references: [id], onDelete: Restrict)
+  user        User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+  bude        Bude         @relation(fields: [budeId], references: [id], onDelete: Cascade)
 
   @@id([userId, budeId])
   @@index([typeId])
   @@index([userId])
   @@index([budeId])
+}
+
+enum ReportStatus {
+  UNREAD
+  READ
+  MARKED
+}
+
+model Admin {
+  userId String @id
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  
+  @@index([userId])
 }

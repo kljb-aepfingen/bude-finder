@@ -1,5 +1,5 @@
 import z from 'zod'
-import {protectedProcedure, router} from '../trpc'
+import {protectedProcedure, adminProcedure, router} from '../trpc'
 import {reportValidator} from '@/utils/validators'
 import {TRPCError} from '@trpc/server'
 import type {Report} from '@prisma/client'
@@ -26,7 +26,7 @@ export const reportRouter = router({
       throw new TRPCError({code: 'NOT_FOUND'})
     }
 
-    const data: Omit<Report, 'createdAt'> = {
+    const data: Omit<Report, 'createdAt' | 'state'> = {
       budeId: input.budeId,
       typeId: type.id,
       userId: ctx.session.user.id,
@@ -57,6 +57,31 @@ export const reportRouter = router({
           budeId: input.budeId,
           userId: ctx.session.user.id
         }
+      }
+    })
+  }),
+  all: adminProcedure.input(z.object({
+    state: z.union([z.literal('UNREAD'), z.literal('READ'), z.literal('MARKED')]),
+    budeId: z.string().cuid().optional(),
+    userId: z.string().cuid().optional()
+  })).query(async ({input, ctx}) => {
+    return ctx.prisma.report.findMany({
+      orderBy: {createdAt: 'asc'},
+      include: {bude: true, user: {select: {name: true}}, type: true},
+      where: input
+    })
+  }),
+  setState: adminProcedure.input(z.object({
+    userId: z.string().cuid(),
+    budeId: z.string().cuid(),
+    state: z.union([z.literal('UNREAD'), z.literal('READ'), z.literal('MARKED')])
+  })).mutation(({ctx, input}) => {
+    return ctx.prisma.report.update({
+      where: {
+        userId_budeId: {budeId: input.budeId, userId: input.userId}
+      },
+      data: {
+        state: input.state
       }
     })
   })
