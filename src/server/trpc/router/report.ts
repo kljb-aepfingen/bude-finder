@@ -17,7 +17,6 @@ export const reportRouter = router({
     }
   }),
   add: protectedProcedure.input(reportValidator).mutation(async ({ctx, input}) => {
-    await new Promise(resolve => setTimeout(resolve, 1000))
     const type = await ctx.prisma.reportType.findFirst({where: {id: input.typeId}})
 
     if (!type) {
