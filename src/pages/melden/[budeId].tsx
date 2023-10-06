@@ -27,7 +27,7 @@ const Melden: NextPage = () => {
   useProtected()
   const router = useRouter()
   const budeId = useFindBude(router)
-  const reportTypes = trpc.report.types.useQuery(undefined, {onError: () => {
+  const reportTypes = trpc.report.types.useQuery({budeId}, {onError: () => {
     toast.error('Melde Arten konnten nicht geladen werden')
   }})
   const deleteReport = trpc.report.delete.useMutation({onSuccess: () => {

@@ -5,9 +5,12 @@ import {TRPCError} from '@trpc/server'
 import type {Report} from '@prisma/client'
 
 export const reportRouter = router({
-  types: protectedProcedure.query(async ({ctx}) => {
+  types: protectedProcedure.input(z.object({
+    budeId: z.string().cuid()
+  })).query(async ({ctx, input}) => {
     const ownReport = await ctx.prisma.report.findFirst({where: {
-      userId: ctx.session.user.id
+      userId: ctx.session.user.id,
+      budeId: input.budeId
     }})
     if (ownReport) {
       return {types: null}
