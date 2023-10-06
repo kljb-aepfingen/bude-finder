@@ -3,6 +3,7 @@ import Link from 'next/link'
 import {useEffect} from 'react'
 
 import Back from '@/components/Back'
+import {env} from '@/env/client.mjs'
 
 const Info: NextPage = () => {
   useEffect(() => {
@@ -30,7 +31,8 @@ const Info: NextPage = () => {
           <h2 id="feedback">Feedback</h2>
           <p>
             Wenn ihr irgendwelche Fehler in unserer App entdeckt, egal ob Schreibfehler oder nicht funktionierende Funktionen,
-            meldet euch gerne bei uns. Unsere Kontaktdaten findet ihr im Impressum.
+            meldet euch gerne bei uns. Unsere Kontaktdaten findet ihr im Impressum. Alternativ könnt ihr auch ein Issue auf
+            unserem <Link href={env.NEXT_PUBLIC_GITHUB_LINK} className="underline text-sky-400" target="_blank">Github</Link> erstellen.
           </p>
         </li>
         <li>
@@ -51,9 +53,9 @@ const Info: NextPage = () => {
             </li>
             <li>
               <h3 id="daten-bude">Deine Bude Daten</h3> speichern wir natürlich
-              komplet auf unseren Servern. Dabei ist wichtig dass deine angegebene Kontaktinformation
-              <b>nicht</b> für andere sichtbar ist, außer für unseren Admin. Ihr werdet
-              eventuel darüber kontaktiert, falls eure Bude/Landjugend gemeldet wird.
+              komplet auf unseren Servern. Dabei ist wichtig dass deine angegebene
+              Kontaktinformation <b>nicht</b> für andere sichtbar ist, außer für unseren Admin.
+              Ihr werdet eventuel darüber kontaktiert, falls eure Bude/Landjugend gemeldet wird.
             </li>
             <li>
               <h3 id="daten-bewertung">Deine Bewertungen</h3> sind natürlich für alle
