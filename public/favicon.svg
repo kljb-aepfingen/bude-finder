@@ -1,0 +1,26 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="256" height="256" viewBox="0 0 200 200">
+  <mask id="mask">
+    <rect x="0" y="0" width="200" height="200" fill="white" />
+    <line x1="51.4"  y1="180"
+          x2="140" y2="40"
+          stroke="black"
+          stroke-width="55"
+          stroke-linecap="round" />
+    <circle cx="140" cy="40" r="55" fill="black" />
+  </mask>
+  <path d="M100,10 L10,75 l31.5,-22.75
+           V170 a20,20,90,0,0,20,20 H138.5 a20,20,90,0,0,20,-20 V52.25
+           l31.5,22.75 L100,10 z"
+        fill="white"
+        stroke="white"
+        stroke-width="20"
+        stroke-linejoin="round"
+        mask="url(#mask)" />
+  <line x1="51.4"  y1="180"
+        x2="140" y2="40"
+        stroke="rgb(200,25,25)"
+        stroke-width="25"
+        stroke-linecap="round" />
+  <circle cx="140" cy="40" r="35" fill="rgb(200,25,25)" />
+  <circle cx="140" cy="40" r="20" fill="white" />
+</svg>
