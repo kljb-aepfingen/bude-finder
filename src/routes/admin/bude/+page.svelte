@@ -38,6 +38,7 @@
 	const markers = getContext('markers');
 	const budes = getContext('budes')();
 	const map = getContext('map')();
+	let originalPosition: google.maps.marker.AdvancedMarkerElement['position'] | null = null;
 	let marker: google.maps.marker.AdvancedMarkerElement | null = null;
 	let listener: google.maps.MapsEventListener | null = null;
 
@@ -83,6 +84,7 @@
 		marker = bude == null ? null : markers.get(bude.bude_id) ?? null;
 		if (marker != undefined) {
 			(marker.content as HTMLImageElement).src = '/editingBude.svg';
+			originalPosition = marker.position;
 		}
 
 		listener = map.addListener('click', ({ latLng }: google.maps.MapMouseEvent) => {
@@ -135,6 +137,10 @@
 		if (data.bude_id == null && marker != null) {
 			marker.map = null;
 		}
+		if (marker != null && originalPosition != null) {
+			marker.position = originalPosition;
+		}
+
 		goto('/admin');
 	}
 
