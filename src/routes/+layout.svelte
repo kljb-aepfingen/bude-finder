@@ -78,7 +78,7 @@
 	});
 
 	$effect(() => {
-		if (budes == null || map == null) {
+		if (budes == null || map == null || markersSet) {
 			return;
 		}
 

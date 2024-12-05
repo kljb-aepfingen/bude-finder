@@ -26,6 +26,10 @@
 			match.lat = form.bude.lat;
 			match.lng = form.bude.lng;
 			match.links = form.bude.links;
+
+			if (marker != undefined) {
+				markers.set(match.bude_id, marker);
+			}
 			goto('/admin');
 		}
 	});
@@ -72,6 +76,10 @@
 	}
 
 	function setMarker(bude: Bude | null, map: google.maps.Map) {
+		if (marker != undefined) {
+			return;
+		}
+
 		marker = bude == null ? null : markers.get(bude.bude_id) ?? null;
 		if (marker != undefined) {
 			(marker.content as HTMLImageElement).src = '/editingBude.svg';
@@ -111,20 +119,23 @@
 
 	$effect(() => {
 		return () => {
+			listener?.remove();
 			if (marker != null) {
 				(marker.content as HTMLImageElement).src = '/bude.svg';
 			}
-			listener?.remove();
 		};
 	});
 
 	// navigation -----------------------------------------
 	function handleBack() {
-		if (stage === 'position') {
-			goto('/admin');
+		if (stage === 'info') {
+			stage = 'position';
 			return;
 		}
-		stage = 'position';
+		if (data.bude_id == null && marker != null) {
+			marker.map = null;
+		}
+		goto('/admin');
 	}
 
 	function handleNext() {
