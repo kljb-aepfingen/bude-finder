@@ -1,0 +1,269 @@
+<script lang="ts">
+	import type { Bude, Link } from '$lib/server/db';
+	import { goto } from '$app/navigation';
+	import { page } from '$app/stores';
+	import { getContext } from '$lib/context';
+	import Left from '$lib/svg/Left.svelte';
+	import Right from '$lib/svg/Right.svelte';
+	import { caps } from '$lib/caps.js';
+	import { toast } from '$lib/Toaster.svelte';
+	import { enhance } from '$app/forms';
+
+	const { data, form } = $props();
+
+	$effect(() => {
+		if (form?.bude != undefined) {
+			const match = budes.find((bude) => bude.bude_id === form.bude.bude_id);
+
+			if (match == undefined) {
+				budes.push(form.bude);
+				goto('/admin');
+				return;
+			}
+
+			match.name = form.bude.name;
+			match.description = form.bude.description;
+			match.lat = form.bude.lat;
+			match.lng = form.bude.lng;
+			match.links = form.bude.links;
+			goto('/admin');
+		}
+	});
+
+	// setup ------------------------------------------------------------------
+	const markers = getContext('markers');
+	const budes = getContext('budes')();
+	const map = getContext('map')();
+	let marker: google.maps.marker.AdvancedMarkerElement | null = null;
+	let listener: google.maps.MapsEventListener | null = null;
+
+	// setup ---------------------------------
+	$effect(() => {
+		if (data.bude_id == null) {
+			createBude(map);
+			return;
+		}
+
+		const match = budes.find((bude) => bude.bude_id === data.bude_id);
+		if (match == undefined) {
+			goto($page.url.pathname, { replaceState: true });
+			return;
+		}
+
+		map.setCenter(match);
+		map.setZoom(19);
+		setBude(match, map);
+	});
+
+	function createBude(map: google.maps.Map) {
+		setMarker(null, map);
+	}
+
+	function setBude(bude: Bude, map: google.maps.Map) {
+		setMarker(bude, map);
+		bude_id = bude.bude_id;
+		name = bude.name;
+		description = bude.description;
+		position = {
+			lat: bude.lat,
+			lng: bude.lng
+		};
+		links = bude.links.map((link) => ({ ...link }));
+	}
+
+	function setMarker(bude: Bude | null, map: google.maps.Map) {
+		marker = bude == null ? null : markers.get(bude.bude_id) ?? null;
+		if (marker != undefined) {
+			(marker.content as HTMLImageElement).src = '/editingBude.svg';
+		}
+
+		listener = map.addListener('click', ({ latLng }: google.maps.MapMouseEvent) => {
+			if (latLng == undefined) {
+				toast.error('Ein unerwarteter Fehler is aufgetreten.');
+				return;
+			}
+
+			position = {
+				lat: latLng.lat(),
+				lng: latLng.lng()
+			};
+
+			if (marker != undefined) {
+				marker.position = latLng;
+				return;
+			}
+
+			marker = new google.maps.marker.AdvancedMarkerElement({
+				map,
+				position: latLng,
+				title: 'Neue Bude',
+				content: createImg()
+			});
+		});
+	}
+
+	function createImg() {
+		const img = document.createElement('img');
+		img.src = '/editingBude.svg';
+		img.width = 26;
+		return img;
+	}
+
+	$effect(() => {
+		return () => {
+			if (marker != null) {
+				(marker.content as HTMLImageElement).src = '/bude.svg';
+			}
+			listener?.remove();
+		};
+	});
+
+	// navigation -----------------------------------------
+	function handleBack() {
+		if (stage === 'position') {
+			goto('/admin');
+			return;
+		}
+		stage = 'position';
+	}
+
+	function handleNext() {
+		stage = 'info';
+	}
+
+	// data ------------------------------------------------------
+	let stage = $state<'position' | 'info'>('position');
+	let bude_id = $state('');
+	let name = $state('');
+	let description = $state('');
+	let position = $state<{ lat: number; lng: number } | null>(null);
+	let links = $state<Link[]>([]);
+	let added = $state<string[]>([]);
+
+	function addLink() {
+		added.push('');
+	}
+
+	function removeLink(index: number) {
+		return () => {
+			links.splice(index, 1);
+		};
+	}
+
+	function removeAddedLink(index: number) {
+		return () => {
+			added.splice(index, 1);
+		};
+	}
+</script>
+
+{#if stage == 'position'}
+	<div class="text-xl p-4">Klicke auf die Karte</div>
+	{@render navbar(position == null)}
+{:else}
+	<form method="post" use:enhance class="h-dfull grid grid-rows-[1fr_auto]">
+		{#if data.bude_id != null}
+			<input type="hidden" name="bude_id" id="bude_id" value={bude_id} />
+		{/if}
+		{#if position != null}
+			<input type="hidden" name="lat" id="lat" value={position.lat} />
+			<input type="hidden" name="lng" id="lng" value={position.lng} />
+		{/if}
+		<div class="p-4 flex flex-col">
+			<label for="name" class="flex gap-1 items-center">
+				Name der Bude/Landjugend
+				<span class="text-sm opacity-70">({name.length}/{caps.bude.name})</span>
+			</label>
+			<input
+				type="text"
+				name="name"
+				id="name"
+				bind:value={name}
+				class="{form?.error?.name
+					? 'border-red-600'
+					: 'border-slate-600'} bg-transparent border rounded-md px-2 py-1"
+			/>
+			<div class="p-1"></div>
+			<label for="description" class="flex gap-1 items-center">
+				Beschreibt euch ein wenig
+				<span class="text-sm opacity-70">({description.length}/{caps.bude.description})</span>
+			</label>
+			<textarea
+				name="description"
+				rows={6}
+				id="description"
+				bind:value={description}
+				class="{form?.error?.description
+					? 'border-red-600'
+					: 'border-slate-600'} bg-transparent border rounded-md px-2 py-1"
+			></textarea>
+			<div class="p-1"></div>
+			<div>
+				Links
+				<button type="button" onclick={addLink} class="border-slate-600 border rounded-md px-2 py-1"
+					>Neu</button
+				>
+			</div>
+			<div class="p-1"></div>
+			<ul class="flex flex-col gap-1">
+				{#each links as link, index (link.link_id)}
+					<li class="flex gap-1 items-center">
+						<input
+							type="text"
+							name="links"
+							id="link-{index}"
+							bind:value={link.value}
+							class="{form?.error?.links?.[index]
+								? 'border-red-600'
+								: 'border-slate-600'} bg-transparent border rounded-md px-2 py-1 w-full"
+						/>
+						<span class="text-sm opacity-70">({link.value.length}/{caps.link.value})</span>
+						<button
+							type="button"
+							onclick={removeLink(index)}
+							class="border-slate-600 border rounded-md px-2 py-1">Löschen</button
+						>
+					</li>
+				{/each}
+
+				{#each added as link, index (index)}
+					<li class="flex gap-1 items-center">
+						<input
+							type="text"
+							name="links"
+							id="link-{links.length + index}"
+							bind:value={added[index]}
+							class="{form?.error?.links?.[index + links.length]
+								? 'border-red-600'
+								: 'border-slate-600'} bg-transparent border rounded-md px-2 py-1 w-full"
+						/>
+						<span class="text-sm opacity-70">({link.length}/{caps.link.value})</span>
+						<button
+							type="button"
+							onclick={removeAddedLink(index)}
+							class="border-slate-600 border rounded-md px-2 py-1">Löschen</button
+						>
+					</li>
+				{/each}
+			</ul>
+		</div>
+		{@render navbar()}
+	</form>
+{/if}
+
+{#snippet navbar(disabled = false)}
+	<div class="h-16 grid grid-cols-2 items-center text-xl">
+		<button type="button" onclick={handleBack} class="flex items-center">
+			<Left />
+			<span class="-translate-y-0.5">Zurück</span>
+		</button>
+		<button
+			{disabled}
+			onclick={handleNext}
+			class="flex justify-end items-center disabled:opacity-40"
+		>
+			<span class="-translate-y-0.5">{stage == 'info' ? 'Speichern' : 'Weiter'}</span>
+			<Right />
+		</button>
+	</div>
+{/snippet}

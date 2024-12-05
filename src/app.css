@@ -1,0 +1,13 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+.h-dfull {
+	height: 100vh;
+	height: 100dvh;
+}
+
+.info-container {
+	max-height: 100vh;
+	max-height: 100dvh;
+}
