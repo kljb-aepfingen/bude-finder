@@ -6,6 +6,7 @@
 	import { setContext } from '$lib/context';
 	import type { Bude } from '$lib/server/db';
 	import Toaster, { toast } from '$lib/Toaster.svelte';
+	import Spinner from '$lib/svg/Spinner.svelte';
 
 	let { children, data } = $props();
 
@@ -104,7 +105,12 @@
 </script>
 
 <div class="grid h-full">
-	<div class="col-start-1 row-start-1" bind:this={div}></div>
+	<div class="col-start-1 row-start-1" bind:this={div}>
+		<div class="fixed inset-0 grid place-content-center place-items-center gap-4 text-2xl">
+			<Spinner />
+			<div>Lade Google Maps</div>
+		</div>
+	</div>
 	<div class="relative isolate pointer-events-none flex flex-col-reverse col-start-1 row-start-1">
 		<div
 			class="info-container scroll-p-4 pointer-events-auto max-w-2xl bg-slate-800 w-full mx-auto overflow-auto"
