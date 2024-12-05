@@ -7,7 +7,7 @@
 	import type { Bude } from '$lib/server/db';
 	import Toaster, { toast } from '$lib/Toaster.svelte';
 
-	let { children } = $props();
+	let { children, data } = $props();
 
 	let loaded = $state(false);
 	let markersSet = $state(false);
@@ -66,15 +66,7 @@
 	});
 
 	$effect(() => {
-		fetch('/budes')
-			.then(async (response) => {
-				if (response.ok) {
-					budes = await response.json();
-					return;
-				}
-				toast.error('Buden konnten nicht geladen werden');
-			})
-			.catch(() => toast.error('Buden konnten nicht geladen werden'));
+		data.budes.then((bs) => (budes = bs));
 	});
 
 	$effect(() => {
