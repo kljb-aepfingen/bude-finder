@@ -1,13 +1,7 @@
 import postgres from 'postgres';
-import { PGHOST, PGDATABASE, PGUSER, PGPASSWORD } from '$env/static/private';
+import { DATABASE_URL } from '$env/static/private';
 
-export const sql = postgres({
-	host: PGHOST,
-	database: PGDATABASE,
-	username: PGUSER,
-	password: PGPASSWORD,
-	port: 5432
-});
+export const sql = postgres(DATABASE_URL);
 export default sql;
 
 export type Bude = {

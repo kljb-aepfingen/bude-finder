@@ -11,14 +11,8 @@ const migrations = await Promise.all(
 		.map((file) => fs.readFile(path.resolve('postgres', 'migrations', path.format(file)), 'utf-8'))
 );
 
-const { PGHOST, PGDATABASE, PGUSER, PGPASSWORD } = loadEnv('', '', '');
-const sql = postgres({
-	host: PGHOST,
-	database: PGDATABASE,
-	username: PGUSER,
-	password: PGPASSWORD,
-	port: 5432
-});
+const { DATABASE_URL } = loadEnv('', '', '');
+const sql = postgres(DATABASE_URL);
 
 await sql`
 create table if not exists _version_budefinder (
