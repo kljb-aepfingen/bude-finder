@@ -81,7 +81,7 @@
 			lat: bude.lat,
 			lng: bude.lng
 		};
-		links = bude.links.map((link) => ({ ...link }));
+		links = bude.links.map((link) => link.value);
 	}
 
 	function setMarker(bude: Bude | null, map: google.maps.Map) {
@@ -162,22 +162,15 @@
 	let name = $state('');
 	let description = $state('');
 	let position = $state<{ lat: number; lng: number } | null>(null);
-	let links = $state<Link[]>([]);
-	let added = $state<string[]>([]);
+	let links = $state<string[]>([]);
 
 	function addLink() {
-		added.push('');
+		links.push('');
 	}
 
 	function removeLink(index: number) {
 		return () => {
 			links.splice(index, 1);
-		};
-	}
-
-	function removeAddedLink(index: number) {
-		return () => {
-			added.splice(index, 1);
 		};
 	}
 </script>
@@ -231,41 +224,21 @@
 			</div>
 			<div class="p-1"></div>
 			<ul class="flex flex-col gap-1">
-				{#each links as link, index (link.link_id)}
+				{#each links as link, index}
 					<li class="flex gap-1 items-center">
 						<input
 							type="text"
 							name="links"
 							id="link-{index}"
-							bind:value={link.value}
+							bind:value={links[index]}
 							class="{form?.error?.links[index]
-								? 'border-red-600'
-								: 'border-slate-600'} bg-transparent border rounded-md px-2 py-1 w-full"
-						/>
-						<span class="text-sm opacity-70">({link.value.length}/{caps.link.value})</span>
-						<button
-							type="button"
-							onclick={removeLink(index)}
-							class="border-slate-600 border rounded-md px-2 py-1">Löschen</button
-						>
-					</li>
-				{/each}
-
-				{#each added as link, index (index)}
-					<li class="flex gap-1 items-center">
-						<input
-							type="text"
-							name="links"
-							id="link-{links.length + index}"
-							bind:value={added[index]}
-							class="{form?.error?.links[index + links.length]
 								? 'border-red-600'
 								: 'border-slate-600'} bg-transparent border rounded-md px-2 py-1 w-full"
 						/>
 						<span class="text-sm opacity-70">({link.length}/{caps.link.value})</span>
 						<button
 							type="button"
-							onclick={removeAddedLink(index)}
+							onclick={removeLink(index)}
 							class="border-slate-600 border rounded-md px-2 py-1">Löschen</button
 						>
 					</li>
