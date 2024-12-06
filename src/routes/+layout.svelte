@@ -67,7 +67,9 @@
 	});
 
 	$effect(() => {
-		data.budes.then((bs) => (budes = bs));
+		data.budes
+			.then((bs) => (budes = bs))
+			.catch(() => toast.error('Buden konnten nicht geladen werden.'));
 	});
 
 	$effect(() => {
@@ -98,9 +100,9 @@
 			apiKey: PUBLIC_MAPS_KEY,
 			version: 'weekly'
 		});
-		Promise.all([loader.importLibrary('maps'), loader.importLibrary('marker')]).then(
-			() => (loaded = true)
-		);
+		Promise.all([loader.importLibrary('maps'), loader.importLibrary('marker')])
+			.then(() => (loaded = true))
+			.catch(() => toast.error('Google Maps konnte nicht geladen werden.'));
 	}
 </script>
 

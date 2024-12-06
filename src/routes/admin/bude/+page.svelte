@@ -34,6 +34,14 @@
 		}
 	});
 
+	$effect.pre(() => {
+		if (form?.error?.messages != undefined) {
+			while (form.error.messages.length > 0) {
+				toast.error(form.error.messages.pop()!);
+			}
+		}
+	});
+
 	// setup ------------------------------------------------------------------
 	const markers = getContext('markers');
 	const budes = getContext('budes')();
@@ -230,7 +238,7 @@
 							name="links"
 							id="link-{index}"
 							bind:value={link.value}
-							class="{form?.error?.links?.[index]
+							class="{form?.error?.links[index]
 								? 'border-red-600'
 								: 'border-slate-600'} bg-transparent border rounded-md px-2 py-1 w-full"
 						/>
@@ -250,7 +258,7 @@
 							name="links"
 							id="link-{links.length + index}"
 							bind:value={added[index]}
-							class="{form?.error?.links?.[index + links.length]
+							class="{form?.error?.links[index + links.length]
 								? 'border-red-600'
 								: 'border-slate-600'} bg-transparent border rounded-md px-2 py-1 w-full"
 						/>
