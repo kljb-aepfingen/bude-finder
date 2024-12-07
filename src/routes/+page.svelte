@@ -7,16 +7,16 @@
 
 	let bude = $state<Bude | null>(null);
 
-	if (data.bid != null) {
-		findBude(data.bid);
-	}
-
 	const setListeners = getContext('setListeners');
 	const clearListeners = getContext('clearListeners');
 	const map = getContext('map')();
 	const budes = getContext('budes')();
 
 	let selected: Bude | null = null;
+
+	if (data.bid != null) {
+		findBude(data.bid);
+	}
 
 	function selectBude(info: Bude) {
 		bude = info;

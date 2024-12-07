@@ -30,6 +30,11 @@ export type Session = {
 	expires_in: number;
 };
 
+export type Internal = {
+	bude_id: string;
+	info: string;
+};
+
 function createFirst(s: typeof sql) {
 	return async <T extends object>(
 		template: TemplateStringsArray,

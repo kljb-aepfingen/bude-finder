@@ -1,14 +1,17 @@
 <script lang="ts">
+	import { SvelteSet } from 'svelte/reactivity';
 	import { enhance } from '$app/forms';
 	import { getContext } from '$lib/context';
 
 	const { form } = $props();
 
+	const budes = getContext('budes')();
 	let search = $state('');
-	let budes = getContext('budes')();
 	let filtered = $derived(filter());
+	let open = new SvelteSet<string>();
 
 	const markers = getContext('markers');
+	const internals = getContext('admin/internals')();
 
 	function filter() {
 		if (search == '') {
@@ -31,6 +34,16 @@
 			markers.delete(form.removed);
 		}
 	});
+
+	function toggle(bude_id: string) {
+		return () => {
+			if (open.has(bude_id)) {
+				open.delete(bude_id);
+			} else {
+				open.add(bude_id);
+			}
+		};
+	}
 </script>
 
 <div class="p-4 h-dfull">
@@ -55,10 +68,17 @@
 	<form method="post" action="/admin?/remove" use:enhance>
 		<ul>
 			{#each filtered as bude (bude.bude_id)}
-				<li class="[&:nth-of-type(2n)]:bg-slate-600 p-1 flex gap-1">
-					<div>{bude.name}</div>
-					<a class="ml-auto hover:underline" href="/admin/bude?bid={bude.bude_id}">Bearbeiten</a>
-					<button name="bude_id" value={bude.bude_id} class="ml-2 hover:underline">Löschen</button>
+				{@const internal = internals.get(bude.bude_id)}
+				<li class="[&:nth-of-type(2n+1)]:bg-slate-600 p-1">
+					<div class="flex gap-1">
+						<button class="flex-1 text-start" onclick={toggle(bude.bude_id)}>{bude.name}</button>
+						<a href="/admin/bude?bid={bude.bude_id}">Bearbeiten</a>
+						<button name="bude_id" value={bude.bude_id} class="ml-2 hover:underline">Löschen</button
+						>
+					</div>
+					{#if open.has(bude.bude_id)}
+						<div class="ml-2">{internal ?? 'Es gibt keine genaueren Infos.'}</div>
+					{/if}
 				</li>
 			{/each}
 		</ul>

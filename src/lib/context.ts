@@ -7,6 +7,8 @@ type Contexts = {
 	markers: Map<string, google.maps.marker.AdvancedMarkerElement>;
 	clearListeners: () => void;
 	setListeners: (select: (bude: Bude) => void, deselect: () => void) => void;
+
+	'admin/internals': () => Map<string, string>;
 };
 
 export function setContext<TKey extends keyof Contexts>(key: TKey, value: Contexts[TKey]) {

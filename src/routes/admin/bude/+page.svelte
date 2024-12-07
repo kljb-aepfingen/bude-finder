@@ -1,5 +1,5 @@
 <script lang="ts">
-	import type { Bude, Link } from '$lib/server/db';
+	import type { Bude } from '$lib/server/db';
 	import { goto } from '$app/navigation';
 	import { page } from '$app/stores';
 	import { getContext } from '$lib/context';
@@ -14,6 +14,11 @@
 	$effect(() => {
 		if (form?.bude != undefined) {
 			const match = budes.find((bude) => bude.bude_id === form.bude.bude_id);
+
+			internals.delete(form.bude.bude_id);
+			if (form.bude.internal != null) {
+				internals.set(form.bude.bude_id, form.bude.internal);
+			}
 
 			if (match == undefined) {
 				budes.push(form.bude);
@@ -34,10 +39,19 @@
 		}
 	});
 
+	$effect.pre(() => {
+		if (form?.error?.messages != undefined) {
+			while (form.error.messages.length > 0) {
+				toast.error(form.error.messages.pop()!);
+			}
+		}
+	});
+
 	// setup ------------------------------------------------------------------
 	const markers = getContext('markers');
 	const budes = getContext('budes')();
 	const map = getContext('map')();
+	const internals = getContext('admin/internals')();
 	let originalPosition: google.maps.marker.AdvancedMarkerElement['position'] | null = null;
 	let marker: google.maps.marker.AdvancedMarkerElement | null = null;
 	let listener: google.maps.MapsEventListener | null = null;
@@ -73,7 +87,8 @@
 			lat: bude.lat,
 			lng: bude.lng
 		};
-		links = bude.links.map((link) => ({ ...link }));
+		links = bude.links.map((link) => link.value);
+		internal = internals.get(bude.bude_id) ?? '';
 	}
 
 	function setMarker(bude: Bude | null, map: google.maps.Map) {
@@ -154,22 +169,16 @@
 	let name = $state('');
 	let description = $state('');
 	let position = $state<{ lat: number; lng: number } | null>(null);
-	let links = $state<Link[]>([]);
-	let added = $state<string[]>([]);
+	let links = $state<string[]>([]);
+	let internal = $state('');
 
 	function addLink() {
-		added.push('');
+		links.push('');
 	}
 
 	function removeLink(index: number) {
 		return () => {
 			links.splice(index, 1);
-		};
-	}
-
-	function removeAddedLink(index: number) {
-		return () => {
-			added.splice(index, 1);
 		};
 	}
 </script>
@@ -186,7 +195,7 @@
 			<input type="hidden" name="lat" id="lat" value={position.lat} />
 			<input type="hidden" name="lng" id="lng" value={position.lng} />
 		{/if}
-		<div class="p-4 flex flex-col">
+		<div class="p-4 flex flex-col overflow-y-auto">
 			<label for="name" class="flex gap-1 items-center">
 				Name der Bude/Landjugend
 				<span class="text-sm opacity-70">({name.length}/{caps.bude.name})</span>
@@ -201,6 +210,7 @@
 					: 'border-slate-600'} bg-transparent border rounded-md px-2 py-1"
 			/>
 			<div class="p-1"></div>
+
 			<label for="description" class="flex gap-1 items-center">
 				Beschreibt euch ein wenig
 				<span class="text-sm opacity-70">({description.length}/{caps.bude.description})</span>
@@ -212,9 +222,22 @@
 				bind:value={description}
 				class="{form?.error?.description
 					? 'border-red-600'
-					: 'border-slate-600'} bg-transparent border rounded-md px-2 py-1"
+					: 'border-slate-600'} bg-transparent border rounded-md px-2 py-1 resize-none"
 			></textarea>
 			<div class="p-1"></div>
+
+			<label for="internal" class="flex gap-1 items-center">
+				Interne Informationen wie zum Beispiel Kontakt Daten.
+			</label>
+			<textarea
+				name="internal"
+				rows={6}
+				id="internal"
+				bind:value={internal}
+				class="border-slate-600 bg-transparent border rounded-md px-2 py-1 resize-none"
+			></textarea>
+			<div class="p-1"></div>
+
 			<div>
 				Links
 				<button type="button" onclick={addLink} class="border-slate-600 border rounded-md px-2 py-1"
@@ -223,41 +246,21 @@
 			</div>
 			<div class="p-1"></div>
 			<ul class="flex flex-col gap-1">
-				{#each links as link, index (link.link_id)}
+				{#each links as link, index}
 					<li class="flex gap-1 items-center">
 						<input
 							type="text"
 							name="links"
 							id="link-{index}"
-							bind:value={link.value}
-							class="{form?.error?.links?.[index]
-								? 'border-red-600'
-								: 'border-slate-600'} bg-transparent border rounded-md px-2 py-1 w-full"
-						/>
-						<span class="text-sm opacity-70">({link.value.length}/{caps.link.value})</span>
-						<button
-							type="button"
-							onclick={removeLink(index)}
-							class="border-slate-600 border rounded-md px-2 py-1">Löschen</button
-						>
-					</li>
-				{/each}
-
-				{#each added as link, index (index)}
-					<li class="flex gap-1 items-center">
-						<input
-							type="text"
-							name="links"
-							id="link-{links.length + index}"
-							bind:value={added[index]}
-							class="{form?.error?.links?.[index + links.length]
+							bind:value={links[index]}
+							class="{form?.error?.links[index]
 								? 'border-red-600'
 								: 'border-slate-600'} bg-transparent border rounded-md px-2 py-1 w-full"
 						/>
 						<span class="text-sm opacity-70">({link.length}/{caps.link.value})</span>
 						<button
 							type="button"
-							onclick={removeAddedLink(index)}
+							onclick={removeLink(index)}
 							class="border-slate-600 border rounded-md px-2 py-1">Löschen</button
 						>
 					</li>

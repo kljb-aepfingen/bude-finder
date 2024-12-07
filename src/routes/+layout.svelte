@@ -6,8 +6,9 @@
 	import { setContext } from '$lib/context';
 	import type { Bude } from '$lib/server/db';
 	import Toaster, { toast } from '$lib/Toaster.svelte';
+	import Spinner from '$lib/svg/Spinner.svelte';
 
-	let { children } = $props();
+	let { children, data } = $props();
 
 	let loaded = $state(false);
 	let markersSet = $state(false);
@@ -66,15 +67,9 @@
 	});
 
 	$effect(() => {
-		fetch('/budes')
-			.then(async (response) => {
-				if (response.ok) {
-					budes = await response.json();
-					return;
-				}
-				toast.error('Buden konnten nicht geladen werden');
-			})
-			.catch(() => toast.error('Buden konnten nicht geladen werden'));
+		data.budes
+			.then((bs) => (budes = bs))
+			.catch(() => toast.error('Buden konnten nicht geladen werden.'));
 	});
 
 	$effect(() => {
@@ -105,14 +100,19 @@
 			apiKey: PUBLIC_MAPS_KEY,
 			version: 'weekly'
 		});
-		Promise.all([loader.importLibrary('maps'), loader.importLibrary('marker')]).then(
-			() => (loaded = true)
-		);
+		Promise.all([loader.importLibrary('maps'), loader.importLibrary('marker')])
+			.then(() => (loaded = true))
+			.catch(() => toast.error('Google Maps konnte nicht geladen werden.'));
 	}
 </script>
 
 <div class="grid h-full">
-	<div class="col-start-1 row-start-1" bind:this={div}></div>
+	<div class="col-start-1 row-start-1" bind:this={div}>
+		<div class="fixed inset-0 grid place-content-center place-items-center gap-4 text-2xl">
+			<Spinner />
+			<div>Lade Google Maps</div>
+		</div>
+	</div>
 	<div class="relative isolate pointer-events-none flex flex-col-reverse col-start-1 row-start-1">
 		<div
 			class="info-container scroll-p-4 pointer-events-auto max-w-2xl bg-slate-800 w-full mx-auto overflow-auto"

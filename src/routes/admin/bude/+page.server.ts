@@ -4,16 +4,22 @@ import { transaction, type Bude } from '$lib/server/db';
 
 export function load({ locals }) {
 	if (!locals.is_admin) {
-		throw redirect(303, '/admin');
+		throw redirect(303, '/admin/login');
 	}
 }
 
 type Fail = {
 	error: {
-		name?: string;
-		description?: string;
-		links?: Array<string | undefined>;
+		messages: string[];
+		name?: true;
+		description?: true;
+		links: Array<true | undefined>;
 	};
+};
+
+const serverFail: Fail['error'] = {
+	links: [],
+	messages: ['Ein unerwarteter Server Fehler ist aufgetreten']
 };
 
 export const actions = {
@@ -30,6 +36,7 @@ export const actions = {
 		const latStr = data.get('lat');
 		const lngStr = data.get('lng');
 		const links = data.getAll('links');
+		const internal = data.get('internal');
 
 		if (
 			(bude_id != null && typeof bude_id !== 'string') ||
@@ -37,97 +44,119 @@ export const actions = {
 			description == null ||
 			latStr == null ||
 			lngStr == null ||
+			internal == null ||
 			typeof name !== 'string' ||
 			typeof description !== 'string' ||
 			typeof latStr !== 'string' ||
 			typeof lngStr !== 'string' ||
+			typeof internal !== 'string' ||
 			!links.every((link) => typeof link === 'string')
 		) {
 			throw error(400);
 		}
 
-		let hasError = false;
-		const err: Fail['error'] = {};
+		const err: Fail['error'] = {
+			messages: [],
+			links: []
+		};
 
 		if (name.length === 0) {
-			err.name = 'Name ist leer.';
-			hasError = true;
+			err.messages.push('Name ist leer.');
+			err.name = true;
 		}
 
 		if (name.length > caps.bude.name) {
-			err.name = 'Name ist zu lang.';
-			hasError = true;
+			err.messages.push('Name ist zu lang.');
+			err.name = true;
 		}
 
 		if (description.length === 0) {
-			err.description = 'Description ist leer.';
-			hasError = true;
+			err.messages.push('Beschreibung ist leer.');
+			err.description = true;
 		}
 
 		if (description.length > caps.bude.description) {
-			err.description = 'Description ist zu lang.';
-			hasError = true;
+			err.messages.push('Beschreibung ist zu lang.');
+			err.description = true;
 		}
 
 		for (let i = 0; i < links.length; i++) {
-			const linksErr = err.links ?? [];
 			if (links[i].length === 0) {
-				linksErr[i] = 'Link ist leer.';
-				err.links = linksErr;
-				hasError = true;
+				err.messages.push('Link ist leer.');
+				err.links[i] = true;
 			}
 			if (links[i].length > caps.link.value) {
-				linksErr[i] = 'Link ist zu lang.';
-				err.links = linksErr;
-				hasError = true;
+				err.messages.push('Link ist zu lang.');
+				err.links[i] = true;
 			}
 		}
 
-		if (hasError) {
+		if (err.messages.length > 0) {
 			return fail(400, { error: err });
 		}
 
 		const lat = Number(latStr);
 		const lng = Number(lngStr);
 
-		const updated = await transaction(async ({ first }) => {
-			let id = bude_id;
-			if (id == null) {
-				const result = await first<Bude>`insert into bude
-					(name, description, lat, lng) values
-					(${name}, ${description}, ${lat}, ${lng}) returning *`;
-				if (result == undefined) {
-					throw new Error('Unexpected database error');
-				}
-				id = result.bude_id;
-			} else {
-				await first`update bude set
-					name = ${name},
-					description = ${description},
-					lat = ${lat},
-					lng = ${lng}
-					where bude_id = ${id}`;
-			}
-
-			if (bude_id != null) {
-				await first`delete from link where bude_id = ${bude_id}`;
-			}
-			for (const link of links) {
-				await first`insert into link (bude_id, value) values (${id}, ${link})`;
-			}
-
-			return first<Bude>`
-				select bude.bude_id, bude.name, bude.description, bude.lat, bude.lng, json_arrayagg(link.*) as links
-				from bude
-				natural left join link
-				where bude.bude_id = ${id}
-				group by bude.bude_id`;
-		});
-
-		if (updated == undefined) {
-			throw error(500);
+		if (isNaN(lat) || isNaN(lng)) {
+			throw error(400);
 		}
 
-		return { bude: updated };
+		try {
+			const updated = await transaction(async ({ first }) => {
+				let id = bude_id;
+				if (id == null) {
+					const result = await first<Bude>`insert into bude
+						(name, description, lat, lng) values
+						(${name}, ${description}, ${lat}, ${lng}) returning *`;
+					if (result == undefined) {
+						throw new Error('Unexpected database error');
+					}
+					id = result.bude_id;
+				} else {
+					await first`update bude set
+						name = ${name},
+						description = ${description},
+						lat = ${lat},
+						lng = ${lng}
+						where bude_id = ${id}`;
+				}
+
+				if (bude_id != null) {
+					await first`delete from link where bude_id = ${bude_id}`;
+					await first`delete from bude_internal where bude_id = ${bude_id}`;
+				}
+				for (const link of links) {
+					await first`insert into link (bude_id, value) values (${id}, ${link})`;
+				}
+				if (internal.length > 0) {
+					await first`insert into bude_internal (bude_id, info) values(${id}, ${internal})`;
+				}
+
+				return first<Bude & { internal: string | null }>`
+					select
+						bude.bude_id,	bude.name, bude.description,
+						bude.lat, bude.lng,
+						bude_internal.info as interal,
+						json_arrayagg(link.*) as links
+					from bude
+					natural left join bude_internal
+					natural left join link
+					where bude.bude_id = ${id}
+					group by bude.bude_id, bude_internal.info`;
+			});
+
+			if (updated == undefined) {
+				return fail<Fail>(500, {
+					error: serverFail
+				});
+			}
+
+			return { bude: updated };
+		} catch {
+			return fail<Fail>(500, {
+				error: serverFail
+			});
+		}
 	}
 };
