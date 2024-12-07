@@ -4,7 +4,7 @@ import { transaction, type Bude } from '$lib/server/db';
 
 export function load({ locals }) {
 	if (!locals.is_admin) {
-		throw redirect(303, '/admin');
+		throw redirect(303, '/admin/login');
 	}
 }
 
@@ -36,6 +36,7 @@ export const actions = {
 		const latStr = data.get('lat');
 		const lngStr = data.get('lng');
 		const links = data.getAll('links');
+		const internal = data.get('internal');
 
 		if (
 			(bude_id != null && typeof bude_id !== 'string') ||
@@ -43,10 +44,12 @@ export const actions = {
 			description == null ||
 			latStr == null ||
 			lngStr == null ||
+			internal == null ||
 			typeof name !== 'string' ||
 			typeof description !== 'string' ||
 			typeof latStr !== 'string' ||
 			typeof lngStr !== 'string' ||
+			typeof internal !== 'string' ||
 			!links.every((link) => typeof link === 'string')
 		) {
 			throw error(400);
@@ -121,17 +124,26 @@ export const actions = {
 
 				if (bude_id != null) {
 					await first`delete from link where bude_id = ${bude_id}`;
+					await first`delete from bude_internal where bude_id = ${bude_id}`;
 				}
 				for (const link of links) {
 					await first`insert into link (bude_id, value) values (${id}, ${link})`;
 				}
+				if (internal.length > 0) {
+					await first`insert into bude_internal (bude_id, info) values(${id}, ${internal})`;
+				}
 
-				return first<Bude>`
-					select bude.bude_id, bude.name, bude.description, bude.lat, bude.lng, json_arrayagg(link.*) as links
+				return first<Bude & { internal: string | null }>`
+					select
+						bude.bude_id,	bude.name, bude.description,
+						bude.lat, bude.lng,
+						bude_internal.info as interal,
+						json_arrayagg(link.*) as links
 					from bude
+					natural left join bude_internal
 					natural left join link
 					where bude.bude_id = ${id}
-					group by bude.bude_id`;
+					group by bude.bude_id, bude_internal.info`;
 			});
 
 			if (updated == undefined) {

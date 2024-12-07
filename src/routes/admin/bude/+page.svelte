@@ -1,5 +1,5 @@
 <script lang="ts">
-	import type { Bude, Link } from '$lib/server/db';
+	import type { Bude } from '$lib/server/db';
 	import { goto } from '$app/navigation';
 	import { page } from '$app/stores';
 	import { getContext } from '$lib/context';
@@ -14,6 +14,11 @@
 	$effect(() => {
 		if (form?.bude != undefined) {
 			const match = budes.find((bude) => bude.bude_id === form.bude.bude_id);
+
+			internals.delete(form.bude.bude_id);
+			if (form.bude.internal != null) {
+				internals.set(form.bude.bude_id, form.bude.internal);
+			}
 
 			if (match == undefined) {
 				budes.push(form.bude);
@@ -46,6 +51,7 @@
 	const markers = getContext('markers');
 	const budes = getContext('budes')();
 	const map = getContext('map')();
+	const internals = getContext('admin/internals')();
 	let originalPosition: google.maps.marker.AdvancedMarkerElement['position'] | null = null;
 	let marker: google.maps.marker.AdvancedMarkerElement | null = null;
 	let listener: google.maps.MapsEventListener | null = null;
@@ -82,6 +88,7 @@
 			lng: bude.lng
 		};
 		links = bude.links.map((link) => link.value);
+		internal = internals.get(bude.bude_id) ?? '';
 	}
 
 	function setMarker(bude: Bude | null, map: google.maps.Map) {
@@ -163,6 +170,7 @@
 	let description = $state('');
 	let position = $state<{ lat: number; lng: number } | null>(null);
 	let links = $state<string[]>([]);
+	let internal = $state('');
 
 	function addLink() {
 		links.push('');
@@ -187,7 +195,7 @@
 			<input type="hidden" name="lat" id="lat" value={position.lat} />
 			<input type="hidden" name="lng" id="lng" value={position.lng} />
 		{/if}
-		<div class="p-4 flex flex-col">
+		<div class="p-4 flex flex-col overflow-y-auto">
 			<label for="name" class="flex gap-1 items-center">
 				Name der Bude/Landjugend
 				<span class="text-sm opacity-70">({name.length}/{caps.bude.name})</span>
@@ -202,6 +210,7 @@
 					: 'border-slate-600'} bg-transparent border rounded-md px-2 py-1"
 			/>
 			<div class="p-1"></div>
+
 			<label for="description" class="flex gap-1 items-center">
 				Beschreibt euch ein wenig
 				<span class="text-sm opacity-70">({description.length}/{caps.bude.description})</span>
@@ -213,9 +222,22 @@
 				bind:value={description}
 				class="{form?.error?.description
 					? 'border-red-600'
-					: 'border-slate-600'} bg-transparent border rounded-md px-2 py-1"
+					: 'border-slate-600'} bg-transparent border rounded-md px-2 py-1 resize-none"
 			></textarea>
 			<div class="p-1"></div>
+
+			<label for="internal" class="flex gap-1 items-center">
+				Interne Informationen wie zum Beispiel Kontakt Daten.
+			</label>
+			<textarea
+				name="internal"
+				rows={6}
+				id="internal"
+				bind:value={internal}
+				class="border-slate-600 bg-transparent border rounded-md px-2 py-1 resize-none"
+			></textarea>
+			<div class="p-1"></div>
+
 			<div>
 				Links
 				<button type="button" onclick={addLink} class="border-slate-600 border rounded-md px-2 py-1"
