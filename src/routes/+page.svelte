@@ -81,7 +81,7 @@
 </script>
 
 {#if bude != null}
-	<div class="col-start-1 row-start-1 p-4">
+	<div class="p-4">
 		<h1 class="text-4xl">{bude.name}</h1>
 		<div class="text-lg ml-4 mt-1">{bude.description}</div>
 		{#if bude.links.length > 0}
@@ -92,5 +92,10 @@
 				{/each}
 			</ul>
 		{/if}
+	</div>
+{:else}
+	<div class="flex">
+		<a class="border-r border-white p-4" href="/kontakt">Kontakt und Impressum</a>
+		<button class="border-l border-white p-4 ml-auto">Mein Standort</button>
 	</div>
 {/if}
