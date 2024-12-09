@@ -10,7 +10,6 @@
 
 	let { children, data } = $props();
 
-	let loaded = $state(false);
 	let markersSet = $state(false);
 	let div = $state<HTMLElement | null>(null);
 
@@ -46,13 +45,37 @@
 	});
 
 	$effect(() => {
-		if (div == null || !loaded || map != null) {
+		if (div == null || map != null) {
 			return;
 		}
 
-		map = new google.maps.Map(div, {
-			center: { lat: 50, lng: 10.2 },
-			zoom: 7,
+		const currentDiv = div;
+		const loader = new pkg.Loader({
+			apiKey: PUBLIC_MAPS_KEY,
+			version: 'weekly'
+		});
+		Promise.all([loader.importLibrary('maps'), loader.importLibrary('marker')])
+			.then(() => loadMap(currentDiv))
+			.catch(() => toast.error('Google Maps konnte nicht geladen werden.'));
+	});
+
+	function loadValue(key: string, fallback: number): number {
+		const str = localStorage.getItem(key);
+		if (str == null) {
+			return fallback;
+		}
+		const value = Number(str);
+		return isNaN(value) ? fallback : value;
+	}
+
+	function loadMap(element: HTMLElement) {
+		const zoom = loadValue('zoom', 9);
+		const lat = loadValue('lat', 48.4);
+		const lng = loadValue('lng', 10.2);
+
+		map = new google.maps.Map(element, {
+			center: { lat, lng },
+			zoom,
 			mapId: 'b457a56d65f3205b',
 			disableDefaultUI: true,
 			clickableIcons: false,
@@ -64,7 +87,22 @@
 			mapTypeId: 'hybrid'
 		});
 		map.addListener('click', () => listeners.deselect?.());
-	});
+
+		const m = map;
+		map.addListener('drag', () => {
+			const center = m.getCenter();
+			if (center != undefined) {
+				localStorage.setItem('lat', center.lat().toString());
+				localStorage.setItem('lng', center.lng().toString());
+			}
+		});
+		map.addListener('zoom_changed', () => {
+			const zoom = m.getZoom();
+			if (zoom != undefined) {
+				localStorage.setItem('zoom', zoom.toString());
+			}
+		});
+	}
 
 	$effect(() => {
 		data.budes
@@ -94,16 +132,6 @@
 
 		markersSet = true;
 	});
-
-	if (browser) {
-		const loader = new pkg.Loader({
-			apiKey: PUBLIC_MAPS_KEY,
-			version: 'weekly'
-		});
-		Promise.all([loader.importLibrary('maps'), loader.importLibrary('marker')])
-			.then(() => (loaded = true))
-			.catch(() => toast.error('Google Maps konnte nicht geladen werden.'));
-	}
 </script>
 
 <div class="grid h-full">
