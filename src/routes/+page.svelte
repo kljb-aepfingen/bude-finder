@@ -11,6 +11,7 @@
 	const clearListeners = getContext('clearListeners');
 	const map = getContext('map')();
 	const budes = getContext('budes')();
+	const geolocation = getContext('geolocation');
 
 	let selected: Bude | null = null;
 
@@ -81,7 +82,7 @@
 </script>
 
 {#if bude != null}
-	<div class="col-start-1 row-start-1 p-4">
+	<div class="p-4">
 		<h1 class="text-4xl">{bude.name}</h1>
 		<div class="text-lg ml-4 mt-1">{bude.description}</div>
 		{#if bude.links.length > 0}
@@ -92,5 +93,20 @@
 				{/each}
 			</ul>
 		{/if}
+	</div>
+{:else}
+	<div class="flex">
+		<a class="border-r border-white p-4" href="/kontakt">Kontakt und Impressum</a>
+		<button
+			disabled={geolocation.status === 'denied'}
+			onclick={geolocation.handle}
+			class="border-l border-white p-4 ml-auto disabled:opacity-40"
+		>
+			{#if geolocation.status === 'denied'}
+				Standort wurde blockiert
+			{:else}
+				Mein Standort anzeigen
+			{/if}
+		</button>
 	</div>
 {/if}
