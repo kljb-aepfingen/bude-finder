@@ -1,12 +1,16 @@
 import * as svelte from 'svelte';
 import type { Bude } from '$lib/server/db';
 
-type Contexts = {
+export type Contexts = {
 	budes: () => Bude[];
 	map: () => google.maps.Map;
 	markers: Map<string, google.maps.marker.AdvancedMarkerElement>;
 	clearListeners: () => void;
 	setListeners: (select: (bude: Bude) => void, deselect: () => void) => void;
+	geolocation: {
+		status: PermissionState;
+		handle: () => void;
+	};
 
 	'admin/internals': () => Map<string, string>;
 };

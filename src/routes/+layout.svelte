@@ -2,8 +2,7 @@
 	import '../app.css';
 	import * as pkg from '@googlemaps/js-api-loader';
 	import { PUBLIC_MAPS_KEY } from '$env/static/public';
-	import { browser } from '$app/environment';
-	import { setContext } from '$lib/context';
+	import { setContext, type Contexts } from '$lib/context';
 	import type { Bude } from '$lib/server/db';
 	import Toaster, { toast } from '$lib/Toaster.svelte';
 	import Spinner from '$lib/svg/Spinner.svelte';
@@ -31,6 +30,11 @@
 
 	const markers = new Map<string, google.maps.marker.AdvancedMarkerElement>();
 	setContext('markers', markers);
+
+	let geoStatus = $state<Contexts['geolocation']>({ status: 'prompt', handle: handleGeolocation });
+	setContext('geolocation', geoStatus);
+	let geoMarker: google.maps.marker.AdvancedMarkerElement | null = null;
+	let watchId = -1;
 
 	const listeners: {
 		select: ((bude: Bude) => void) | null;
@@ -131,6 +135,76 @@
 		});
 
 		markersSet = true;
+	});
+
+	$effect(() => {
+		if ('permissions' in navigator && 'geolocation' in navigator) {
+			navigator.permissions.query({ name: 'geolocation' }).then((result) => {
+				geoStatus.status = result.state;
+				result.addEventListener('change', () => {
+					geoStatus.status = result.state;
+				});
+			});
+		}
+	});
+
+	function handleGeolocation() {
+		if (!('geolocation' in navigator)) {
+			toast.error('Das unterstützt dein Gerät leider nicht.');
+			return;
+		}
+		navigator.geolocation.getCurrentPosition(
+			(pos) => {
+				geoStatus.status = 'granted';
+				const position = { lat: pos.coords.latitude, lng: pos.coords.longitude };
+				focusOnGeolocation(position);
+			},
+			() => {
+				geoStatus.status = 'denied';
+			}
+		);
+	}
+
+	function focusOnGeolocation(position: { lat: number; lng: number }) {
+		if (map == null) {
+			return;
+		}
+
+		map.setCenter(position);
+		map.setZoom(18);
+	}
+
+	$effect(() => {
+		if (map == null) {
+			return;
+		}
+
+		navigator.geolocation.clearWatch(watchId);
+		if (geoStatus.status === 'granted') {
+			if (geoMarker == null) {
+				geoMarker = new google.maps.marker.AdvancedMarkerElement({
+					map
+				});
+			}
+			navigator.geolocation.getCurrentPosition((pos) => {
+				if (geoMarker != null) {
+					const position = { lat: pos.coords.latitude, lng: pos.coords.longitude };
+					geoMarker.position = position;
+					focusOnGeolocation(position);
+				}
+			});
+			watchId = navigator.geolocation.watchPosition((pos) => {
+				if (geoMarker != null) {
+					geoMarker.position = { lat: pos.coords.latitude, lng: pos.coords.longitude };
+				}
+			});
+			return;
+		}
+
+		if (geoMarker != null) {
+			geoMarker.map = null;
+			geoMarker = null;
+		}
 	});
 </script>
 
