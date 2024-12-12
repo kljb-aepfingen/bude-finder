@@ -3,7 +3,7 @@
 	import { getContext } from '$lib/context';
 	import { goto, afterNavigate } from '$app/navigation';
 
-	const usableClasses = ['list-disc', 'ml-2'];
+	const usableClasses = ['list-disc', 'ml-6'];
 
 	let { data } = $props();
 
