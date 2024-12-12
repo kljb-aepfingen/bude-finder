@@ -3,6 +3,8 @@
 	import { getContext } from '$lib/context';
 	import { goto, afterNavigate } from '$app/navigation';
 
+	const usableClasses = ['list-disc', 'ml-2'];
+
 	let { data } = $props();
 
 	let bude = $state<Bude | null>(null);
