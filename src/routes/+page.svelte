@@ -84,7 +84,7 @@
 {#if bude != null}
 	<div class="p-4">
 		<h1 class="text-4xl">{bude.name}</h1>
-		<div class="text-lg ml-4 mt-1 whitespace-pre-wrap">{bude.description}</div>
+		<div class="text-lg ml-4 mt-1">{@html bude.description}</div>
 		{#if bude.links.length > 0}
 			<h2 class="text-2xl mt-2">Links</h2>
 			<ul class="ml-4 mt-1">
