@@ -108,7 +108,7 @@ export const actions = {
 				if (id == null) {
 					const result = await first<Bude>`insert into bude
 						(name, description, lat, lng) values
-						(${name}, ${description}, ${lat}, ${lng}) returning *`;
+						(${name}, ${description.replaceAll('\r', '')}, ${lat}, ${lng}) returning *`;
 					if (result == undefined) {
 						throw new Error('Unexpected database error');
 					}
@@ -116,7 +116,7 @@ export const actions = {
 				} else {
 					await first`update bude set
 						name = ${name},
-						description = ${description},
+						description = ${description.replaceAll('\r', '')},
 						lat = ${lat},
 						lng = ${lng}
 						where bude_id = ${id}`;
