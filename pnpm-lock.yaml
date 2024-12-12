@@ -49,6 +49,9 @@ devDependencies:
   prettier-plugin-svelte:
     specifier: ^3.2.6
     version: 3.2.6(prettier@3.2.5)(svelte@5.0.0-next.245)
+  snarkdown:
+    specifier: ^2.0.0
+    version: 2.0.0
   svelte:
     specifier: 5.0.0-next.245
     version: 5.0.0-next.245
@@ -2139,6 +2142,10 @@ packages:
   /slash@3.0.0:
     resolution: {integrity: sha512-g9Q1haeby36OSStwb4ntCGGGaKsaVSjQ68fBxoQcutl5fS1vuY18H3wSt3jFyFtrkx+Kz0V1G85A4MyAdDMi2Q==}
     engines: {node: '>=8'}
+    dev: true
+
+  /snarkdown@2.0.0:
+    resolution: {integrity: sha512-MgL/7k/AZdXCTJiNgrO7chgDqaB9FGM/1Tvlcenenb7div6obaDATzs16JhFyHHBGodHT3B7RzRc5qk8pFhg3A==}
     dev: true
 
   /sorcery@0.11.1:

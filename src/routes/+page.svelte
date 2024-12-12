@@ -1,4 +1,5 @@
 <script lang="ts">
+	import snarkdown from 'snarkdown';
 	import type { Bude } from '$lib/server/db';
 	import { getContext } from '$lib/context';
 	import { goto, afterNavigate } from '$app/navigation';
@@ -86,7 +87,7 @@
 {#if bude != null}
 	<div class="p-4">
 		<h1 class="text-4xl">{bude.name}</h1>
-		<div class="text-lg ml-4 mt-1">{@html bude.description}</div>
+		<div class="text-lg ml-4 mt-1 description">{@html snarkdown(bude.description)}</div>
 		{#if bude.links.length > 0}
 			<h2 class="text-2xl mt-2">Links</h2>
 			<ul class="ml-4 mt-1">
@@ -112,3 +113,15 @@
 		</button>
 	</div>
 {/if}
+
+<style lang="postcss">
+	.description :global(ul) {
+		@apply list-disc list-inside;
+	}
+	.description :global(ol) {
+		@apply list-decimal list-inside;
+	}
+	.description :global(h2) {
+		@apply text-xl;
+	}
+</style>
