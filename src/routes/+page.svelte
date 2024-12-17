@@ -4,8 +4,6 @@
 	import { getContext } from '$lib/context';
 	import { goto, afterNavigate } from '$app/navigation';
 
-	const usableClasses = ['list-disc', 'ml-6'];
-
 	let { data } = $props();
 
 	let bude = $state<Bude | null>(null);
@@ -92,7 +90,15 @@
 			<h2 class="text-2xl mt-2">Links</h2>
 			<ul class="ml-4 mt-1">
 				{#each bude.links as link (link.link_id)}
-					<li><a target="_blank" href={link.value} class="underline">{link.value}</a></li>
+					{@const { origin } = new URL(link.url)}
+					<li>
+						<img
+							class="inline-block"
+							alt="icon of {link.value ?? origin}"
+							src="https://s2.googleusercontent.com/s2/favicons?domain={encodeURIComponent(origin)}"
+						/>
+						<a target="_blank" href={link.url} class="underline">{link.value ?? origin}</a>
+					</li>
 				{/each}
 			</ul>
 		{/if}

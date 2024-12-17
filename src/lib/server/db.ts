@@ -16,7 +16,8 @@ export type Bude = {
 export type Link = {
 	link_id: string;
 	bude_id: string;
-	value: string;
+	url: string;
+	value?: string;
 };
 
 export type Admin = {
