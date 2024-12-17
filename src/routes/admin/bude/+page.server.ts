@@ -13,12 +13,14 @@ type Fail = {
 		messages: string[];
 		name?: true;
 		description?: true;
-		links: Array<true | undefined>;
+		linksUrl: Array<true | undefined>;
+		linksValue: Array<true | undefined>;
 	};
 };
 
 const serverFail: Fail['error'] = {
-	links: [],
+	linksUrl: [],
+	linksValue: [],
 	messages: ['Ein unerwarteter Server Fehler ist aufgetreten']
 };
 
@@ -35,7 +37,8 @@ export const actions = {
 		const description = data.get('description');
 		const latStr = data.get('lat');
 		const lngStr = data.get('lng');
-		const links = data.getAll('links');
+		const linksUrl = data.getAll('linksUrl');
+		const linksValue = data.getAll('linksValue');
 		const internal = data.get('internal');
 
 		if (
@@ -50,14 +53,17 @@ export const actions = {
 			typeof latStr !== 'string' ||
 			typeof lngStr !== 'string' ||
 			typeof internal !== 'string' ||
-			!links.every((link) => typeof link === 'string')
+			!linksUrl.every((linkUrl) => typeof linkUrl === 'string') ||
+			!linksValue.every((linkValue) => typeof linkValue === 'string') ||
+			linksUrl.length !== linksValue.length
 		) {
 			throw error(400);
 		}
 
 		const err: Fail['error'] = {
 			messages: [],
-			links: []
+			linksUrl: [],
+			linksValue: []
 		};
 
 		if (name.length === 0) {
@@ -80,14 +86,18 @@ export const actions = {
 			err.description = true;
 		}
 
-		for (let i = 0; i < links.length; i++) {
-			if (links[i].length === 0) {
-				err.messages.push('Link ist leer.');
-				err.links[i] = true;
+		for (let i = 0; i < linksUrl.length; i++) {
+			if (linksUrl[i].length === 0) {
+				err.messages.push('Url ist leer.');
+				err.linksUrl[i] = true;
 			}
-			if (links[i].length > caps.link.value) {
-				err.messages.push('Link ist zu lang.');
-				err.links[i] = true;
+			if (linksUrl[i].length > caps.link.url) {
+				err.messages.push('Url ist zu lang.');
+				err.linksUrl[i] = true;
+			}
+			if (linksValue[i].length > caps.link.value) {
+				err.messages.push('Url Name ist zu lang.');
+				err.linksValue[i] = true;
 			}
 		}
 
@@ -126,8 +136,12 @@ export const actions = {
 					await first`delete from link where bude_id = ${bude_id}`;
 					await first`delete from bude_internal where bude_id = ${bude_id}`;
 				}
-				for (const link of links) {
-					await first`insert into link (bude_id, value) values (${id}, ${link})`;
+				for (let i = 0; i < linksUrl.length; i++) {
+					if (linksValue[i] === '') {
+						await first`insert into link (bude_id, url) values (${id}, ${linksUrl[i]})`;
+					} else {
+						await first`insert into link (bude_id, url, value) values (${id}, ${linksUrl[i]}, ${linksValue[i]})`;
+					}
 				}
 				if (internal.length > 0) {
 					await first`insert into bude_internal (bude_id, info) values(${id}, ${internal})`;
@@ -153,7 +167,8 @@ export const actions = {
 			}
 
 			return { bude: updated };
-		} catch {
+		} catch (e) {
+			console.log(e);
 			return fail<Fail>(500, {
 				error: serverFail
 			});

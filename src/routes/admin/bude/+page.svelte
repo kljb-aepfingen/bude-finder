@@ -87,7 +87,7 @@
 			lat: bude.lat,
 			lng: bude.lng
 		};
-		links = bude.links.map((link) => link.value);
+		links = bude.links.map((link) => ({ url: link.url, value: link.value ?? '' }));
 		internal = internals.get(bude.bude_id) ?? '';
 	}
 
@@ -164,16 +164,16 @@
 	}
 
 	// data ------------------------------------------------------
-	let stage = $state<'position' | 'info'>('position');
+	let stage = $state<'position' | 'info'>('info');
 	let bude_id = $state('');
 	let name = $state('');
 	let description = $state('');
 	let position = $state<{ lat: number; lng: number } | null>(null);
-	let links = $state<string[]>([]);
+	let links = $state<Array<{ url: string; value: string }>>([]);
 	let internal = $state('');
 
 	function addLink() {
-		links.push('');
+		links.push({ url: '', value: '' });
 	}
 
 	function removeLink(index: number) {
@@ -245,27 +245,43 @@
 				>
 			</div>
 			<div class="p-1"></div>
-			<ul class="flex flex-col gap-1">
+			<ol class="flex flex-col gap-4">
 				{#each links as link, index}
-					<li class="flex gap-1 items-center">
+					<li class="grid gap-1 grid-cols-[auto_1fr_auto_auto] items-center">
+						<label for="linksUrl-{index}" class="ml-4">Url</label>
 						<input
 							type="text"
-							name="links"
-							id="link-{index}"
-							bind:value={links[index]}
-							class="{form?.error?.links[index]
+							name="linksUrl"
+							id="linksUrl-{index}"
+							bind:value={link.url}
+							class="{form?.error?.linksUrl[index]
 								? 'border-red-600'
 								: 'border-slate-600'} bg-transparent border rounded-md px-2 py-1 w-full"
 						/>
-						<span class="text-sm opacity-70">({link.length}/{caps.link.value})</span>
-						<button
-							type="button"
-							onclick={removeLink(index)}
-							class="border-slate-600 border rounded-md px-2 py-1">Löschen</button
-						>
+						<span class="text-sm opacity-70">({link.url.length}/{caps.link.url})</span>
+
+						<label for="linksValue-{index}" class="ml-4">Name</label>
+						<input
+							type="text"
+							name="linksValue"
+							id="linksValue-{index}"
+							bind:value={link.value}
+							class="{form?.error?.linksValue[index]
+								? 'border-red-600'
+								: 'border-slate-600'} bg-transparent border rounded-md px-2 py-1 w-full"
+						/>
+						<span class="text-sm opacity-70">({link.value.length}/{caps.link.value})</span>
+
+						<div class="row-span-2 col-start-4 row-start-1 flex gap-2 ml-2 items-center">
+							<button
+								type="button"
+								onclick={removeLink(index)}
+								class="border-slate-600 border rounded-md px-2 py-1">Löschen</button
+							>
+						</div>
 					</li>
 				{/each}
-			</ul>
+			</ol>
 		</div>
 		{@render navbar()}
 	</form>

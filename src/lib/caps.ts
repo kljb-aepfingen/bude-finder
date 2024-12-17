@@ -4,6 +4,7 @@ export const caps = {
 		description: 400
 	},
 	link: {
-		value: 200
+		url: 200,
+		value: 50
 	}
 };
