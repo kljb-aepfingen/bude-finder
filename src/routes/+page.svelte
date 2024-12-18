@@ -105,7 +105,7 @@
 	</div>
 {:else}
 	<div class="flex">
-		<a class="border-r border-white p-4" href="/kontakt">Kontakt und Impressum</a>
+		<a class="border-r border-white p-4" href="/info">Info</a>
 		<button
 			disabled={geolocation.status === 'denied'}
 			onclick={geolocation.handle}

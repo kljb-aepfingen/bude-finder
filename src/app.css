@@ -11,3 +11,35 @@
 	max-height: 100vh;
 	max-height: 100dvh;
 }
+
+.counter-alph {
+	counter-reset: alph;
+	@apply flex flex-col gap-1;
+}
+.counter-alph > li {
+	@apply relative pl-5;
+}
+.counter-alph h3 {
+	@apply underline inline target:text-red-400;
+}
+.counter-alph > li::before {
+	counter-increment: alph;
+	content: counter(alph, lower-alpha) ')';
+	@apply absolute left-0;
+}
+
+.counter-dec {
+	counter-reset: dec;
+	@apply flex flex-col gap-1;
+}
+.counter-dec > li {
+	@apply ml-3;
+}
+.counter-dec h2 {
+	@apply relative pl-7 -ml-3 text-lg font-semibold target:text-red-400;
+}
+.counter-dec h2::before {
+	counter-increment: dec;
+	content: counter(dec) '.';
+	@apply absolute left-0;
+}
