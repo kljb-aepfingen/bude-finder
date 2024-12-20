@@ -12,6 +12,14 @@
 			<p>Deutschland</p>
 			<div class="p-1"></div>
 			<p>
+				Instagram: <a
+					href="https://www.instagram.com/kljb_aepfingen/"
+					target="_blank"
+					rel="noopener noreferrer"
+					class="underline text-sky-400">KLjB Äpfingen</a
+				>
+			</p>
+			<p>
 				Email: <a href="mailto:elias.gerster@outlook.de" class="underline text-sky-400"
 					>elias.gerster@outlook.de</a
 				>

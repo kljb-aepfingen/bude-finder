@@ -765,17 +765,21 @@
 		</ol>
 		<div class="p-1"></div>
 		<p>
-			Entwickelt von den <a href="https://willing-able.com/" class="underline text-sky-400"
-				>Legal Tech</a
+			Entwickelt von den <a
+				href="https://willing-able.com/"
+				class="underline text-sky-400"
+				target="_blank">Legal Tech</a
 			>
 			Spezialisten von Willing & Able, die auch das System zur Abbildung der
-			<a href="https://abletotrain.com/" class="underline text-sky-400">DSGVO-Schulung</a>
+			<a href="https://abletotrain.com/" class="underline text-sky-400" target="_blank"
+				>DSGVO-Schulung</a
+			>
 			entwickelt haben. Die Texte des Datenschutzerklärungs-Generators wurden von
-			<a href="https://dg-datenschutz.de/" class="underline text-sky-400"
+			<a href="https://dg-datenschutz.de/" class="underline text-sky-400" target="_blank"
 				>Prof. Dr. h.c. Heiko Jonny Maniero</a
 			>
 			und Rechtsanwalt
-			<a href="https://www.wbs.legal/" class="underline text-sky-400" rel="nofollow"
+			<a href="https://www.wbs.legal/" class="underline text-sky-400" rel="nofollow" target="_blank"
 				>Christian Solmecke</a
 			> erstellt und publiziert.
 		</p>
